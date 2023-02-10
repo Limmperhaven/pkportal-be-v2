@@ -1,0 +1,18 @@
+app:
+  cost: 10
+
+server:
+  host: localhost
+  port: 5000
+
+psql:
+  host: localhost
+  port: 5432
+  user: postgres
+  pass: postgres
+  dbname: pk-portal
+  sslmode: disable
+  schema: public
+  blacklist: schema_migrations
+  max_idle_conns: 50
+  max_open_conns: 50

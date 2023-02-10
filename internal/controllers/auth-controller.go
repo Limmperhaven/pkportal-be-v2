@@ -1,0 +1,57 @@
+package controllers
+
+import (
+	"github.com/Limmperhaven/pkportal-be-v2/internal/body"
+	"github.com/Limmperhaven/pkportal-be-v2/internal/controllers/response"
+	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
+	"github.com/Limmperhaven/pkportal-be-v2/internal/models/mapper"
+	"github.com/Limmperhaven/pkportal-be-v2/internal/models/restmodels"
+	"github.com/gin-gonic/gin"
+	"net/http"
+)
+
+func (s *ControllerStorage) SignUp(c *gin.Context) {
+	var req restmodels.SignUpRequest
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(err))
+		return
+	}
+	err = s.uc.SignUp(c, mapper.NewSignUpRequestFromRest(&req))
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
+func (s *ControllerStorage) SignIn(c *gin.Context) {
+	var req restmodels.SignInRequest
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(err))
+		return
+	}
+	userAuth, err := s.uc.SignIn(c, mapper.NewSignInRequestFromRest(&req))
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+
+	c.SetCookie(body.AuthToken,
+		"Bearer "+userAuth.AuthToken,
+		86400,
+		"/",
+		"localhost",
+		false,
+		true)
+	c.JSON(http.StatusOK, *mapper.NewUserToRest(&userAuth.User))
+}
+
+func (s *ControllerStorage) RecoverPassword(c *gin.Context) {
+	response.NewErrorResponse(c, errs.NewNotImplemented())
+}
+
+func (s *ControllerStorage) ActivateAccount(c *gin.Context) {
+	response.NewErrorResponse(c, errs.NewNotImplemented())
+}

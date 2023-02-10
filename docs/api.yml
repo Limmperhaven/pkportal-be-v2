@@ -15,6 +15,8 @@ tags:
     description: Операции над учебными профилями
   - name: Subjects
     description: Операции над школьными предметами
+  - name: ForeignLanguages
+    description: Операции над иностранными языками
 paths:
   /auth/sign-up:
     post:
@@ -78,6 +80,27 @@ paths:
           description: Письмо с восстановлением отправлено
         404:
           description: Пользователь с таким email не найден
+        500:
+          description: Ошибка сервера
+  /auth/activate/{activationLink}:
+    get:
+      tags:
+        - Auth
+      summary: Активация аккаунта
+      description: Эндпоинт для активации через активационное письмо email
+      operationId: activate
+      parameters:
+        - name: activationLink
+          in: path
+          description: Активационный url
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: ОК
+        404:
+          description: Пользователь с таким ActivationLink не найден
         500:
           description: Ошибка сервера
   /user/create:
@@ -148,6 +171,31 @@ paths:
       responses:
         200:
           description: Пользователь успешно обновлен
+        404:
+          description: Пользователь с таким id не найден
+        500:
+          description: Ошибка сервера
+  /user/list:
+    get:
+      tags:
+        - User
+      summary: Получение списка пользователей
+      description: Эндпоинт для получения администрацией списка пользователей
+      operationId: listUsers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserListRequest'
+      responses:
+        200:
+          description: ОК
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserFull'
         404:
           description: Пользователь с таким id не найден
         500:
@@ -266,7 +314,7 @@ paths:
         - TestDate
       summary: Установить новый статус
       description: Эндпоинт для установки администрацией нового статуса тестирования
-      operationId: getTdById
+      operationId: setTestDateStatus
       parameters:
         - name: id
           in: path
@@ -454,6 +502,24 @@ paths:
           description: Профиль/предмет с таким Id не найден
         500:
           description: Ошибка сервера
+  /profiles/list:
+    get:
+      tags:
+        - Profiles
+      summary: Получить список профилей
+      description: Эндпоинт для получения списка профилей
+      operationId: listSubjects
+      responses:
+        200:
+          description: ОК
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProfileFull'
+        500:
+          description: Ошибка сервера
   /profiles/setToUser/{userId}:
     post:
       tags:
@@ -540,7 +606,7 @@ paths:
           content:
             applications/json:
               schema:
-                $ref: '#/components/schemas/IdName'
+                $ref: '#/components/schemas/SubjectFull'
         404:
           description: Предмет с таким Id не найден
         500:
@@ -559,6 +625,11 @@ paths:
           schema:
             type: integer
             format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subject'
       responses:
         200:
           description: ОК
@@ -566,53 +637,168 @@ paths:
           description: Предмет с таким Id не найден
         500:
           description: Ошибка сервера
-  /subjects/setProfileToUser/{userId}:
-    post:
+  /subjects/list:
+    get:
       tags:
         - Subjects
-      summary: Установить профильные предметы для пользователя
-      description: Эндпоинт для выбора администрацией профильных предметов для абитуриента
-      operationId: setProfileSubjectsToUser
+      summary: Получить список предметов
+      description: Эндпоинт для получения списка предметов
+      operationId: listSubjects
+      responses:
+        200:
+          description: ОК
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubjectFull'
+        500:
+          description: Ошибка сервера
+  /fl/create:
+    post:
+      tags:
+        - ForeignLanguages
+      summary: Создать иностранный язык
+      description: Эндпоинт для создания администрацией иностранного языка
+      operationId: createFL
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SetProfileSubjectsRequest'
+              $ref: '#/components/schemas/Subject'
+      responses:
+        200:
+          description: OK
+        400:
+          description: Ошибка валидации запроса
+        500:
+          description: Ошибка сервера
+  /fl/byId/{id}:
+    get:
+        tags:
+          - ForeignLanguages
+        summary: Получить иностранный язык
+        description: Эндпоинт для получения иностранного языка по Id
+        operationId: getFLById
+        parameters:
+          - name: id
+            in: path
+            description: Id иностранного языка
+            required: true
+            schema:
+              type: integer
+              format: int64
+        responses:
+          200:
+            description: OK
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/IdName'
+          404:
+            description: Иностранный язык с таким Id не найден
+          500:
+            description: Ошибка сервера
+    put:
+      tags:
+        - ForeignLanguages
+      summary: Обновить иностранный язык
+      description: Эндпоинт для обновления иностранного языка администацией
+      operationId: updateFL
+      parameters:
+        - name: id
+          in: path
+          description: Id иностранного языка
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subject'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdName'
+        400:
+          description: Ошибка валидации запроса
+        500:
+          description: Ошибка сервера
+  /fl/list:
+    get:
+      tags:
+        - ForeignLanguages
+      summary: Получить список иностранных языков
+      description: Эндпоинт для получения списка иностранных языков
+      operationId: listForeignLanguages
+      responses:
+        200:
+          description: ОК
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IdName'
+        500:
+          description: Ошибка сервера
+  /fl/setToUser/{userId}/{languageId}:
+    post:
+      tags:
+        - ForeignLanguages
+      summary: Установить иностранный язык для пользователя
+      description: Эндпоинт для установки администрацией иностранного языка абитуриенту
+      operationId: setForeignLanguageToUser
       parameters:
         - name: userId
           in: path
-          description: Id пользователя
+          description: Id предмета
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: languageId
+          in: path
+          description: Id предмета
           required: true
           schema:
             type: integer
             format: int64
       responses:
         200:
-          description: ОК
+          description: OK
         404:
-          description: Предмет/пользователь с таким Id не найден
+          description: Язык/Пользователь с таким Id не найден
         500:
           description: Ошибка сервера
-  /subjects/setProfileToMe:
+  /fl/setToMe/{languageId}:
     post:
       tags:
-        - Subjects
-      summary: Установить профильные предметы для себя
-      description: Эндпоинт для выбора абитуриентом профильных предметов
-      operationId: setProfileSubjectsToMe
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SetProfileSubjectsRequest'
+        - ForeignLanguages
+      summary: Установить иностранный язык для меня
+      description: Эндпоинт для установки абитуриентом иностранного языка для себя
+      operationId: setForeignLanguageToMe
+      parameters:
+        - name: languageId
+          in: path
+          description: Id предмета
+          required: true
+          schema:
+            type: integer
+            format: int64
       responses:
         200:
-          description: ОК
+          description: OK
         404:
-          description: Предмет/пользователь с таким Id не найден
+          description: Язык/Пользователь с таким Id не найден
         500:
           description: Ошибка сервера
-
 components:
   schemas:
     SignUp:
@@ -642,16 +828,12 @@ components:
         phone_number:
           type: string
           example: +79991113333
-        additional_phone_number:
+        parent_phone_number:
           type: string
           example: +79991113333
         current_school:
           type: string
           example: Школа №1
-        additional_email:
-          type: string
-          format: email
-          example: email@example.com
         education_year:
           type: integer
           format: int64
@@ -713,10 +895,10 @@ components:
         second_profile:
           type: string
           example: Углубленная математика
-        profiles:
-          type: array
-          items:
-            $ref: "#/components/schemas/ProfileFull"
+        first_profile_subject:
+          $ref: '#/components/schemas/IdName'
+        second_profile_subject:
+          $ref: '#/components/schemas/IdName'
         exams:
           type: array
           items:
@@ -886,17 +1068,7 @@ components:
                 - shown
                 - hidden
         sort:
-          type: object
-          properties:
-            field_name:
-              type: string
-              example: max_persons
-            direction:
-              type: string
-              example: ASC
-              enum:
-                - ASC
-                - DESC
+              $ref: '#/components/schemas/Sort'
     Profile:
       type: object
       properties:
@@ -910,8 +1082,7 @@ components:
         subjects:
           type: array
           items:
-            type: integer
-            example: 5
+            $ref: '#/components/schemas/IdName'
     ProfileFull:
       type: object
       properties:
@@ -929,7 +1100,7 @@ components:
         subjects:
           type: array
           items:
-            $ref: '#/components/schemas/IdName'
+            $ref: '#/components/schemas/SubjectFull'
     SetProfilesRequest:
       type: object
       properties:
@@ -937,16 +1108,37 @@ components:
           type: integer
           format: int64
           example: 1
-        second_profile_id:
+        first_profile_subject_id:
           type: integer
           format: int64
           example: 2
+        second_profile_id:
+          type: integer
+          format: int64
+          example: 3
+        second_profile_subject_id:
+          type: integer
+          format: int64
+          example: 4
     Subject:
       type: object
       properties:
         name:
           type: string
           example: Физика
+    SubjectFull:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 322
+        name:
+          type: string
+          example: Информатика
+        is_foreign_language:
+          type: boolean
+          example: false
     SetProfileSubjectsRequest:
       type: object
       properties:
@@ -958,3 +1150,60 @@ components:
           type: integer
           format: int64
           example: 1
+    UserListRequest:
+      type: object
+      properties:
+        filter:
+          type: object
+          properties:
+            fio:
+              type: string
+              example: Фамилия Имя Отчествович
+            date_of_birth_from:
+              type: string
+              format: date
+              example: 01.02.2002
+            date_of_birth_to:
+              type: string
+              format: date
+              example: 01.03.2023
+            gender:
+              type: string
+              example: male
+              enum:
+                - male
+                - female
+            profile_id:
+              type: integer
+              format: int64
+              example: 15
+            test_date_id:
+              type: integer
+              format: int64
+              example: 278
+            current_school:
+              type: string
+              example: Школа №1
+            education_year:
+              type: integer
+              format: int64
+              example: 9
+            role:
+              type: string
+              enum:
+                - user
+                - admin
+        sort:
+          $ref: '#/components/schemas/Sort'
+    Sort:
+      type: object
+      properties:
+        field_name:
+          type: string
+          example: max_persons
+        direction:
+          type: string
+          example: ASC
+          enum:
+            - ASC
+            - DESC
