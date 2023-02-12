@@ -23,6 +23,8 @@ services:
       - "5000:5000"
     volumes:
       - "pkportal-be:/app"
+    depends_on:
+      - postgres
 
 volumes:
   pgsql_data:

@@ -25,9 +25,9 @@ func InitConnect(cfg *config.Postgres) error {
 	if cfg == nil {
 		return errConnect
 	}
-	if cfg.Host == "" {
-		cfg.Host = "localhost"
-	}
+	//if cfg.Host == "" {
+	//	cfg.Host = "localhost"
+	//}
 	if cfg.Port == "" {
 		cfg.Port = "5432"
 	}
@@ -56,9 +56,10 @@ func InitConnect(cfg *config.Postgres) error {
 		cfg.SSLMode,
 	)
 
+	var db *sqlx.DB
 	var err error
 	for i := 0; i < 20; i++ {
-		db, err := sqlx.Connect("pgx", connURL)
+		db, err = sqlx.Connect("pgx", connURL)
 		if err != nil {
 			log.Printf("Try %d: %s", i, err)
 			time.Sleep(time.Second)
