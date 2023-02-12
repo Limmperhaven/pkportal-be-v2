@@ -44,7 +44,7 @@ func (u *Usecase) SignUp(ctx context.Context, req *tpportal.SignUpRequest) error
 		ChangePasswordToken: uuid.New().String(),
 	}
 	cfg := config.Get().Server
-	activationLink := cfg.Scheme + "://" + cfg.Host + "/activate/" + user.ActivationToken
+	activationLink := cfg.Scheme + "://" + cfg.Host + "/auth/activate/" + user.ActivationToken
 
 	err = u.st.QueryTx(ctx, func(tx *sqlx.Tx) error {
 		err = user.Insert(ctx, tx, boil.Infer())
@@ -118,4 +118,21 @@ func (u *Usecase) Activate(ctx context.Context, token string) error {
 		return nil
 	})
 	return err
+}
+
+func (u *Usecase) RecoverPassword(ctx context.Context, email string) error {
+	user, err := tpportal.Users(tpportal.UserWhere.Email.EQ(email)).One(ctx, u.st.DBSX())
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return errs.NewNotFound(errors.New("пользователь с таким email не найден"))
+		}
+		return errs.NewInternal(err)
+	}
+
+	err = u.mail.SendTextEmail(body.RecoverPasswordSubject, body.RecoverPasswordMessage, []string{user.Email})
+	if err != nil {
+		return errs.NewInternal(err)
+	}
+
+	return nil
 }

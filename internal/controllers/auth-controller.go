@@ -49,7 +49,13 @@ func (s *ControllerStorage) SignIn(c *gin.Context) {
 }
 
 func (s *ControllerStorage) RecoverPassword(c *gin.Context) {
-	response.NewErrorResponse(c, errs.NewNotImplemented())
+	email := c.Param("email")
+	err := s.uc.RecoverPassword(c, email)
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.Status(http.StatusOK)
 }
 
 func (s *ControllerStorage) ActivateAccount(c *gin.Context) {
@@ -57,6 +63,7 @@ func (s *ControllerStorage) ActivateAccount(c *gin.Context) {
 	err := s.uc.Activate(c, token)
 	if err != nil {
 		response.NewErrorResponse(c, err)
+		return
 	}
 	c.Status(http.StatusOK)
 }

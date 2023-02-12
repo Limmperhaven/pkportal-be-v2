@@ -14,7 +14,8 @@ type Config struct {
 }
 
 type App struct {
-	Cost int64 `yaml:"cost"`
+	Cost        int64  `yaml:"cost"`
+	FrontendUrl string `yaml:"frontend_url"`
 }
 
 type Server struct {

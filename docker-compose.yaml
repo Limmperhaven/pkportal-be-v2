@@ -17,7 +17,15 @@ services:
       POSTGRES_DB: pk-portal
     volumes:
       - pgsql_data:/var/lib/postgresql/data
+  pkportal-be:
+    image: pkportal-be:latest
+    ports:
+      - "5000:5000"
+    volumes:
+      - "pkportal-be:/app"
 
 volumes:
   pgsql_data:
+    driver: local
+  pkportal-be:
     driver: local

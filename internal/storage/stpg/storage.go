@@ -8,7 +8,9 @@ import (
 	"github.com/Limmperhaven/pkportal-be-v2/internal/storage"
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
+	"log"
 	"runtime/debug"
+	"time"
 )
 
 var errConnect = errors.New("config is empty or connect is not init")
@@ -53,19 +55,21 @@ func InitConnect(cfg *config.Postgres) error {
 		cfg.DbName,
 		cfg.SSLMode,
 	)
-	db, err := sqlx.Connect("pgx", connURL)
-	if err != nil {
-		return err
-	}
 
-	if err = db.Ping(); err != nil {
-		return err
+	var err error
+	for i := 0; i < 20; i++ {
+		db, err := sqlx.Connect("pgx", connURL)
+		if err != nil {
+			log.Printf("Try %d: %s", i, err)
+			time.Sleep(time.Second)
+			continue
+		}
+		db.SetMaxOpenConns(cfg.MaxOpenConns)
+		db.SetMaxIdleConns(cfg.MaxIdleConns)
+		instance = &Storage{db: db}
+		return nil
 	}
-	db.SetMaxOpenConns(cfg.MaxOpenConns)
-	db.SetMaxIdleConns(cfg.MaxIdleConns)
-
-	instance = &Storage{db: db}
-	return nil
+	return err
 }
 
 func Gist() storage.PGer {
