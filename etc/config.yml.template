@@ -2,6 +2,7 @@ app:
   cost: 10
 
 server:
+  scheme: http
   host: localhost
   port: 5000
 
@@ -16,3 +17,9 @@ psql:
   blacklist: schema_migrations
   max_idle_conns: 50
   max_open_conns: 50
+
+smtp:
+  address: "user1@pkportaldev.space"
+  host: "mail.pkportaldev.space"
+  port: "587"
+  password: "Gxtkjtl03@"

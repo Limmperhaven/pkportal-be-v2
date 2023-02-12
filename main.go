@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/Limmperhaven/pkportal-be-v2/internal/client"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/config"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/controllers"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/controllers/middlewares"
@@ -20,7 +21,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("error initializing database: %s", err.Error())
 	}
-	uc := domain.NewUsecase()
+	mail := client.NewMailClient(&cfg.SMTP)
+	uc := domain.NewUsecase(mail)
 	c := controllers.NewController(uc)
 	m := middlewares.NewMiddlewareStorage()
 	srv := server.NewServer(&cfg.Server, c, m)

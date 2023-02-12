@@ -19,7 +19,7 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		auth.POST("/sign-up", c.SignUp)
 		auth.POST("/sign-in", c.SignIn)
 		auth.POST("/recover/:email", c.RecoverPassword)
-		auth.GET("/activate/:activationLink", c.RecoverPassword)
+		auth.GET("/activate/:token", c.ActivateAccount)
 	}
 
 	authTd := authorized.Group("/td")

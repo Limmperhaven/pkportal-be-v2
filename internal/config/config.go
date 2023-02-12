@@ -10,6 +10,7 @@ type Config struct {
 	App      App      `yaml:"app"`
 	Server   Server   `yaml:"server"`
 	Postgres Postgres `yaml:"psql"`
+	SMTP     SMTP     `yaml:"smtp"`
 }
 
 type App struct {
@@ -17,8 +18,9 @@ type App struct {
 }
 
 type Server struct {
-	Host string `yaml:"host"`
-	Port string `yaml:"port"`
+	Scheme string `yaml:"scheme"`
+	Host   string `yaml:"host"`
+	Port   string `yaml:"port"`
 }
 
 type Postgres struct {
@@ -30,6 +32,13 @@ type Postgres struct {
 	SSLMode      string `yaml:"sslmode"`
 	MaxIdleConns int    `yaml:"max_idle_conns"`
 	MaxOpenConns int    `yaml:"max_open_conns"`
+}
+
+type SMTP struct {
+	Address  string `yaml:"address"`
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
+	Password string `yaml:"password"`
 }
 
 var config *Config

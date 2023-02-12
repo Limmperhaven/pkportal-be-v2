@@ -20,3 +20,6 @@
 # Config files
 etc/*.yaml
 etc/*.yml
+
+# Swagger gen
+gen

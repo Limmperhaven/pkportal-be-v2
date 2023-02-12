@@ -53,5 +53,10 @@ func (s *ControllerStorage) RecoverPassword(c *gin.Context) {
 }
 
 func (s *ControllerStorage) ActivateAccount(c *gin.Context) {
-	response.NewErrorResponse(c, errs.NewNotImplemented())
+	token := c.Param("token")
+	err := s.uc.Activate(c, token)
+	if err != nil {
+		response.NewErrorResponse(c, err)
+	}
+	c.Status(http.StatusOK)
 }
