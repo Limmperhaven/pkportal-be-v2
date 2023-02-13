@@ -1,10 +1,11 @@
 app:
   cost: 10
+  frontend_url: "http://localhost:8080"
 
 server:
   scheme: http
-  host: localhost
   port: 5000
+  domain: localhost
 
 psql:
   host: localhost

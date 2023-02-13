@@ -1,6 +1,5 @@
 FROM golang:latest
 MAINTAINER Mr. Artem Chulaevskiy
-LABEL version="0.1"
 
 WORKDIR /app
 

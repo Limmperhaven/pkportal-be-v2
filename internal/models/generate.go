@@ -28,7 +28,7 @@ func step1() {
 		log.Fatalf("error reading dir: %s", err.Error())
 	}
 
-	err = os.Mkdir("internal/models/tmp", 0644)
+	err = os.Mkdir("internal/models/tmp", 0777)
 	if err != nil {
 		log.Fatalf("error creating tmp dir: %s", err.Error())
 	}
@@ -45,7 +45,7 @@ func step1() {
 		if err != nil {
 			log.Fatalf("error reading file: %s", err.Error())
 		}
-		err = os.WriteFile("internal/models/tmp/"+file.Name(), bytes, 0644)
+		err = os.WriteFile("internal/models/tmp/"+file.Name(), bytes, 0777)
 		if err != nil {
 			log.Fatalf("error writing file: %s", err.Error())
 		}

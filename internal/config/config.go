@@ -22,6 +22,7 @@ type Server struct {
 	Scheme string `yaml:"scheme"`
 	Host   string `yaml:"host"`
 	Port   string `yaml:"port"`
+	Domain string `yaml:"domain"`
 }
 
 type Postgres struct {

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/Limmperhaven/pkportal-be-v2/internal/body"
+	"github.com/Limmperhaven/pkportal-be-v2/internal/config"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/controllers/response"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/mapper"
@@ -37,13 +38,15 @@ func (s *ControllerStorage) SignIn(c *gin.Context) {
 		response.NewErrorResponse(c, err)
 		return
 	}
+	cfg := config.Get().Server
+	cookieSecure := cfg.Scheme == "https"
 
 	c.SetCookie(body.AuthToken,
 		"Bearer "+userAuth.AuthToken,
 		86400,
 		"/",
-		"localhost",
-		false,
+		cfg.Domain,
+		cookieSecure,
 		true)
 	c.JSON(http.StatusOK, *mapper.NewUserToRest(&userAuth.User))
 }
