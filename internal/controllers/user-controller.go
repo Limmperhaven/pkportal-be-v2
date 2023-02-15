@@ -5,10 +5,8 @@ import (
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/mapper"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/restmodels"
-	"github.com/friendsofgo/errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strconv"
 )
 
 func (s *ControllerStorage) CreateUser(c *gin.Context) {
@@ -27,14 +25,15 @@ func (s *ControllerStorage) CreateUser(c *gin.Context) {
 }
 
 func (s *ControllerStorage) GetUser(c *gin.Context) {
-	userIdParam := c.Param("id")
-	userId, err := strconv.ParseInt(userIdParam, 10, 64)
-	if err != nil {
-		response.NewErrorResponse(c, errs.NewBadRequest(errors.New("Невалидный id пользователя")))
-		return
-	}
-
-	s.uc.
+	//userIdParam := c.Param("id")
+	//userId, err := strconv.ParseInt(userIdParam, 10, 64)
+	//if err != nil {
+	//	response.NewErrorResponse(c, errs.NewBadRequest(errors.New("Невалидный id пользователя")))
+	//	return
+	//}
+	//
+	//s.uc.
+	response.NewErrorResponse(c, errs.NewNotImplemented())
 }
 
 func (s *ControllerStorage) ListUsers(c *gin.Context) {

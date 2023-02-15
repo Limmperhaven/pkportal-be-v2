@@ -84,7 +84,8 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 
 func initCors(router *gin.Engine) http.Handler {
 	c := cors.New(cors.Options{
-		AllowOriginFunc: func(origin string) bool { return true },
+		AllowOriginFunc:        func(origin string) bool { return true },
+		AllowOriginRequestFunc: func(r *http.Request, origin string) bool { return true },
 		AllowedMethods: []string{
 			http.MethodGet, http.MethodPost,
 		},
