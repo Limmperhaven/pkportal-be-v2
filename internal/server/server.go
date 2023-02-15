@@ -22,12 +22,12 @@ type Server struct {
 func NewServer(cfg *config.Server, c *controllers.ControllerStorage, m *middlewares.MiddlewareStorage) *Server {
 	router := gin.Default()
 	initRoutes(router, c, m)
-	//handler := initCors(router)
+	handler := initCors(router)
 	return &Server{
 		server: http.Server{
-			Addr: cfg.Host + ":" + cfg.Port,
-			//Handler:      handler,
-			Handler:      router,
+			Addr:    cfg.Host + ":" + cfg.Port,
+			Handler: handler,
+			//Handler:      router,
 			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 10 * time.Second,
 		},
