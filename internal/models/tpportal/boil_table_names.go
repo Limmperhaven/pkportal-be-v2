@@ -7,6 +7,7 @@ var TableNames = struct {
 	ForeignLanguages     string
 	ProfileSubjects      string
 	Profiles             string
+	Statuses             string
 	Subjects             string
 	TestDates            string
 	UserForeignLanguages string
@@ -18,6 +19,7 @@ var TableNames = struct {
 	ForeignLanguages:     "foreign_languages",
 	ProfileSubjects:      "profile_subjects",
 	Profiles:             "profiles",
+	Statuses:             "statuses",
 	Subjects:             "subjects",
 	TestDates:            "test_dates",
 	UserForeignLanguages: "user_foreign_languages",

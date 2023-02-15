@@ -38,6 +38,7 @@ type User struct {
 	ActivationToken     string      `boil:"activation_token" json:"activation_token" toml:"activation_token" yaml:"activation_token"`
 	ChangePasswordToken string      `boil:"change_password_token" json:"change_password_token" toml:"change_password_token" yaml:"change_password_token"`
 	Role                UserRole    `boil:"role" json:"role" toml:"role" yaml:"role"`
+	StatusID            int64       `boil:"status_id" json:"status_id" toml:"status_id" yaml:"status_id"`
 
 	R *userR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -58,6 +59,7 @@ var UserColumns = struct {
 	ActivationToken     string
 	ChangePasswordToken string
 	Role                string
+	StatusID            string
 }{
 	ID:                  "id",
 	Email:               "email",
@@ -73,6 +75,7 @@ var UserColumns = struct {
 	ActivationToken:     "activation_token",
 	ChangePasswordToken: "change_password_token",
 	Role:                "role",
+	StatusID:            "status_id",
 }
 
 var UserTableColumns = struct {
@@ -90,6 +93,7 @@ var UserTableColumns = struct {
 	ActivationToken     string
 	ChangePasswordToken string
 	Role                string
+	StatusID            string
 }{
 	ID:                  "users.id",
 	Email:               "users.email",
@@ -105,6 +109,7 @@ var UserTableColumns = struct {
 	ActivationToken:     "users.activation_token",
 	ChangePasswordToken: "users.change_password_token",
 	Role:                "users.role",
+	StatusID:            "users.status_id",
 }
 
 // Generated where
@@ -232,6 +237,7 @@ var UserWhere = struct {
 	ActivationToken     whereHelperstring
 	ChangePasswordToken whereHelperstring
 	Role                whereHelperUserRole
+	StatusID            whereHelperint64
 }{
 	ID:                  whereHelperint64{field: "\"users\".\"id\""},
 	Email:               whereHelperstring{field: "\"users\".\"email\""},
@@ -247,15 +253,18 @@ var UserWhere = struct {
 	ActivationToken:     whereHelperstring{field: "\"users\".\"activation_token\""},
 	ChangePasswordToken: whereHelperstring{field: "\"users\".\"change_password_token\""},
 	Role:                whereHelperUserRole{field: "\"users\".\"role\""},
+	StatusID:            whereHelperint64{field: "\"users\".\"status_id\""},
 }
 
 // UserRels is where relationship names are stored.
 var UserRels = struct {
+	Status               string
 	UserForeignLanguages string
 	UserProfileSubjects  string
 	UserProfiles         string
 	UserTestDates        string
 }{
+	Status:               "Status",
 	UserForeignLanguages: "UserForeignLanguages",
 	UserProfileSubjects:  "UserProfileSubjects",
 	UserProfiles:         "UserProfiles",
@@ -264,6 +273,7 @@ var UserRels = struct {
 
 // userR is where relationships are stored.
 type userR struct {
+	Status               *Status                  `boil:"Status" json:"Status" toml:"Status" yaml:"Status"`
 	UserForeignLanguages UserForeignLanguageSlice `boil:"UserForeignLanguages" json:"UserForeignLanguages" toml:"UserForeignLanguages" yaml:"UserForeignLanguages"`
 	UserProfileSubjects  UserProfileSubjectSlice  `boil:"UserProfileSubjects" json:"UserProfileSubjects" toml:"UserProfileSubjects" yaml:"UserProfileSubjects"`
 	UserProfiles         UserProfileSlice         `boil:"UserProfiles" json:"UserProfiles" toml:"UserProfiles" yaml:"UserProfiles"`
@@ -273,6 +283,13 @@ type userR struct {
 // NewStruct creates a new relationship struct
 func (*userR) NewStruct() *userR {
 	return &userR{}
+}
+
+func (r *userR) GetStatus() *Status {
+	if r == nil {
+		return nil
+	}
+	return r.Status
 }
 
 func (r *userR) GetUserForeignLanguages() UserForeignLanguageSlice {
@@ -307,9 +324,9 @@ func (r *userR) GetUserTestDates() UserTestDateSlice {
 type userL struct{}
 
 var (
-	userAllColumns            = []string{"id", "email", "hash_password", "fio", "date_of_birth", "gender", "phone_number", "parent_phone_number", "current_school", "education_year", "is_activated", "activation_token", "change_password_token", "role"}
+	userAllColumns            = []string{"id", "email", "hash_password", "fio", "date_of_birth", "gender", "phone_number", "parent_phone_number", "current_school", "education_year", "is_activated", "activation_token", "change_password_token", "role", "status_id"}
 	userColumnsWithoutDefault = []string{"email", "hash_password", "fio", "date_of_birth", "gender", "phone_number", "parent_phone_number", "education_year", "activation_token", "change_password_token"}
-	userColumnsWithDefault    = []string{"id", "current_school", "is_activated", "role"}
+	userColumnsWithDefault    = []string{"id", "current_school", "is_activated", "role", "status_id"}
 	userPrimaryKeyColumns     = []string{"id"}
 	userGeneratedColumns      = []string{}
 )
@@ -592,6 +609,17 @@ func (q userQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool,
 	return count > 0, nil
 }
 
+// Status pointed to by the foreign key.
+func (o *User) Status(mods ...qm.QueryMod) statusQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.StatusID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	return Statuses(queryMods...)
+}
+
 // UserForeignLanguages retrieves all the user_foreign_language's UserForeignLanguages with an executor.
 func (o *User) UserForeignLanguages(mods ...qm.QueryMod) userForeignLanguageQuery {
 	var queryMods []qm.QueryMod
@@ -646,6 +674,126 @@ func (o *User) UserTestDates(mods ...qm.QueryMod) userTestDateQuery {
 	)
 
 	return UserTestDates(queryMods...)
+}
+
+// LoadStatus allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (userL) LoadStatus(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		var ok bool
+		object, ok = maybeUser.(*User)
+		if !ok {
+			object = new(User)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeUser))
+			}
+		}
+	} else {
+		s, ok := maybeUser.(*[]*User)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeUser))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		args = append(args, object.StatusID)
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+
+			for _, a := range args {
+				if a == obj.StatusID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.StatusID)
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`statuses`),
+		qm.WhereIn(`statuses.id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load Status")
+	}
+
+	var resultSlice []*Status
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice Status")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for statuses")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for statuses")
+	}
+
+	if len(statusAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.Status = foreign
+		if foreign.R == nil {
+			foreign.R = &statusR{}
+		}
+		foreign.R.Users = append(foreign.R.Users, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.StatusID == foreign.ID {
+				local.R.Status = foreign
+				if foreign.R == nil {
+					foreign.R = &statusR{}
+				}
+				foreign.R.Users = append(foreign.R.Users, local)
+				break
+			}
+		}
+	}
+
+	return nil
 }
 
 // LoadUserForeignLanguages allows an eager lookup of values, cached into the
@@ -1099,6 +1247,53 @@ func (userL) LoadUserTestDates(ctx context.Context, e boil.ContextExecutor, sing
 				break
 			}
 		}
+	}
+
+	return nil
+}
+
+// SetStatus of the user to the related item.
+// Sets o.R.Status to related.
+// Adds o to related.R.Users.
+func (o *User) SetStatus(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Status) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"users\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"status_id"}),
+		strmangle.WhereClause("\"", "\"", 2, userPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.StatusID = related.ID
+	if o.R == nil {
+		o.R = &userR{
+			Status: related,
+		}
+	} else {
+		o.R.Status = related
+	}
+
+	if related.R == nil {
+		related.R = &statusR{
+			Users: UserSlice{o},
+		}
+	} else {
+		related.R.Users = append(related.R.Users, o)
 	}
 
 	return nil

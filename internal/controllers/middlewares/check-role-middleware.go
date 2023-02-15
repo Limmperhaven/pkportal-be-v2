@@ -8,7 +8,7 @@ import (
 )
 
 func (m *MiddlewareStorage) CheckAdminRoleMiddleware(c *gin.Context) {
-	if role, ok := c.Get(body.UserRole); !ok || role != tpportal.UserRoleAdmin {
+	if role, ok := c.Get(body.UserRole); !ok || role != tpportal.UserRoleAdmin.String() {
 		c.AbortWithStatus(http.StatusForbidden)
 		return
 	}

@@ -28,3 +28,18 @@ type Claims struct {
 	jwt.RegisteredClaims
 	Id int64
 }
+
+type CreateUserRequest struct {
+	Email             string
+	Fio               string
+	Password          string
+	DateOfBirth       string
+	Gender            string
+	PhoneNumber       string
+	ParentPhoneNumber string
+	CurrentSchool     string
+	EducationYear     int64
+	IsActivated       bool
+	Role              string
+	StatusId          int64
+}

@@ -70,3 +70,15 @@ func (s *ControllerStorage) ActivateAccount(c *gin.Context) {
 	}
 	c.Status(http.StatusOK)
 }
+
+func (s *ControllerStorage) Logout(c *gin.Context) {
+	cfg := config.Get().Server
+
+	c.SetCookie(body.AuthToken,
+		"",
+		-1,
+		"/",
+		cfg.Domain,
+		cfg.Scheme == "https",
+		true)
+}

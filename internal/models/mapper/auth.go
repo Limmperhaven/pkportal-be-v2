@@ -37,5 +37,24 @@ func NewUserToRest(in *tpportal.User) *restmodels.User {
 		ParentPhoneNumber: in.ParentPhoneNumber,
 		CurrentSchool:     in.CurrentSchool.String,
 		EducationYear:     int64(in.EducationYear),
+		Role:              in.Role.String(),
+		StatusId:          in.StatusID,
+	}
+}
+
+func NewCreateUserRequestFromRest(in *restmodels.CreateUserRequest) *tpportal.CreateUserRequest {
+	return &tpportal.CreateUserRequest{
+		Email:             in.Email,
+		Fio:               in.Fio,
+		Password:          in.Password,
+		DateOfBirth:       in.DateOfBirth,
+		Gender:            in.Gender,
+		PhoneNumber:       in.PhoneNumber,
+		ParentPhoneNumber: in.ParentPhoneNumber,
+		CurrentSchool:     in.CurrentSchool,
+		EducationYear:     in.EducationYear,
+		IsActivated:       in.IsActivated,
+		Role:              in.Role,
+		StatusId:          in.StatusId,
 	}
 }

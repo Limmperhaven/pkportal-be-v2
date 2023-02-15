@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS public.subjects;
 DROP TABLE IF EXISTS public.profiles;
 DROP TABLE IF EXISTS public.test_dates;
 DROP TABLE IF EXISTS public.users;
+DROP TABLE IF EXISTS public.statuses;
 
 DROP TYPE IF EXISTS user_role;
 DROP TYPE IF EXISTS user_gender;

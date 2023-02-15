@@ -27,4 +27,22 @@ type User struct {
 	ParentPhoneNumber string `json:"parent_phone_number"`
 	CurrentSchool     string `json:"current_school"`
 	EducationYear     int64  `json:"education_year"`
+	IsActivated       bool   `json:"isActivated"`
+	Role              string `json:"role"`
+	StatusId          int64  `json:"status"`
+}
+
+type CreateUserRequest struct {
+	Email             string `json:"email"`
+	Fio               string `json:"fio"`
+	Password          string `json:"password"`
+	DateOfBirth       string `json:"date_of_birth"`
+	Gender            string `json:"gender"`
+	PhoneNumber       string `json:"phone_number"`
+	ParentPhoneNumber string `json:"parent_phone_number"`
+	CurrentSchool     string `json:"current_school"`
+	EducationYear     int64  `json:"education_year"`
+	IsActivated       bool   `json:"is_activated"`
+	Role              string `json:"role"`
+	StatusId          int64  `json:"status_id"`
 }

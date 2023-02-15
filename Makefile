@@ -45,14 +45,23 @@ sql-generate:
 	go run internal/models/generate.go --step2
 .PHONY: sql-generate
 
+test-up:
+	docker compose -p pkportal-test -f docker-compose.yaml up -d --wait
+.PHONY: test-up
+
+test-dn:
+	docker compose -p pkportal-test -f docker-compose.yaml stop
+	docker compose -p pkportal-test -f docker-compose.yaml rm -f
+.PHONY: test-dn
+
 env-up:
-	docker compose -p pkportal up -d --wait
+	docker compose -p pkportal -f docker-compose-dev.yaml up -d --wait
 .PHONY: env-up
 
 env-dn:
-	docker compose -p pkportal stop
-	docker compose -p pkportal rm -f
-
+	docker compose -p pkportal -f docker-compose-dev.yaml stop
+	docker compose -p pkportal -f docker-compose-dev.yaml rm -f
+.PHONY: env-dn
 
 h:
 	@echo "Usage: make [target]"

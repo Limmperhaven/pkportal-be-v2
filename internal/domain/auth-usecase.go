@@ -3,7 +3,6 @@ package domain
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/body"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/config"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
@@ -19,19 +18,18 @@ import (
 )
 
 func (u *Usecase) SignUp(ctx context.Context, req *tpportal.SignUpRequest) error {
-	hashPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password+body.AppSalt), body.AppCost)
+	hashPassword, err := u.hashPassword(req.Password)
 	if err != nil {
-		return errs.NewInternal(err)
+		return err
 	}
-
-	dob, err := time.Parse("02.01.2006", req.DateOfBirth)
+	dob, err := u.parseDate(req.DateOfBirth)
 	if err != nil {
-		return errs.NewBadRequest(fmt.Errorf("invalid date_of_birth: %s", req.DateOfBirth))
+		return err
 	}
 
 	user := tpportal.User{
 		Email:               req.Email,
-		HashPassword:        string(hashPassword),
+		HashPassword:        hashPassword,
 		Fio:                 req.Fio,
 		DateOfBirth:         dob,
 		Gender:              tpportal.UserGender(req.Gender),
