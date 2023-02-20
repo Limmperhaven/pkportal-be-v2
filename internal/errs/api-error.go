@@ -2,6 +2,7 @@ package errs
 
 import (
 	"errors"
+	"log"
 	"net/http"
 )
 
@@ -43,6 +44,7 @@ func NewNotImplemented() IApiError {
 }
 
 func newApiError(err error, statusCode int) ApiError {
+	log.Println(err.Error())
 	return ApiError{
 		Err:        err,
 		StatusCode: statusCode,
