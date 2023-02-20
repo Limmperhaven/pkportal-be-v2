@@ -23,37 +23,60 @@ import (
 
 // Status is an object representing the database table.
 type Status struct {
-	ID   int64  `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Name string `boil:"name" json:"name" toml:"name" yaml:"name"`
+	ID                    int64  `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Name                  string `boil:"name" json:"name" toml:"name" yaml:"name"`
+	AvailableFor10THClass bool   `boil:"available_for_10th_class" json:"available_for_10th_class" toml:"available_for_10th_class" yaml:"available_for_10th_class"`
+	AvailableFor9THClass  bool   `boil:"available_for_9th_class" json:"available_for_9th_class" toml:"available_for_9th_class" yaml:"available_for_9th_class"`
 
 	R *statusR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L statusL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var StatusColumns = struct {
-	ID   string
-	Name string
+	ID                    string
+	Name                  string
+	AvailableFor10THClass string
+	AvailableFor9THClass  string
 }{
-	ID:   "id",
-	Name: "name",
+	ID:                    "id",
+	Name:                  "name",
+	AvailableFor10THClass: "available_for_10th_class",
+	AvailableFor9THClass:  "available_for_9th_class",
 }
 
 var StatusTableColumns = struct {
-	ID   string
-	Name string
+	ID                    string
+	Name                  string
+	AvailableFor10THClass string
+	AvailableFor9THClass  string
 }{
-	ID:   "statuses.id",
-	Name: "statuses.name",
+	ID:                    "statuses.id",
+	Name:                  "statuses.name",
+	AvailableFor10THClass: "statuses.available_for_10th_class",
+	AvailableFor9THClass:  "statuses.available_for_9th_class",
 }
 
 // Generated where
 
+type whereHelperbool struct{ field string }
+
+func (w whereHelperbool) EQ(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
+func (w whereHelperbool) NEQ(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
+func (w whereHelperbool) LT(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
+func (w whereHelperbool) LTE(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
+func (w whereHelperbool) GT(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
+func (w whereHelperbool) GTE(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
+
 var StatusWhere = struct {
-	ID   whereHelperint64
-	Name whereHelperstring
+	ID                    whereHelperint64
+	Name                  whereHelperstring
+	AvailableFor10THClass whereHelperbool
+	AvailableFor9THClass  whereHelperbool
 }{
-	ID:   whereHelperint64{field: "\"statuses\".\"id\""},
-	Name: whereHelperstring{field: "\"statuses\".\"name\""},
+	ID:                    whereHelperint64{field: "\"statuses\".\"id\""},
+	Name:                  whereHelperstring{field: "\"statuses\".\"name\""},
+	AvailableFor10THClass: whereHelperbool{field: "\"statuses\".\"available_for_10th_class\""},
+	AvailableFor9THClass:  whereHelperbool{field: "\"statuses\".\"available_for_9th_class\""},
 }
 
 // StatusRels is where relationship names are stored.
@@ -84,9 +107,9 @@ func (r *statusR) GetUsers() UserSlice {
 type statusL struct{}
 
 var (
-	statusAllColumns            = []string{"id", "name"}
+	statusAllColumns            = []string{"id", "name", "available_for_10th_class", "available_for_9th_class"}
 	statusColumnsWithoutDefault = []string{"name"}
-	statusColumnsWithDefault    = []string{"id"}
+	statusColumnsWithDefault    = []string{"id", "available_for_10th_class", "available_for_9th_class"}
 	statusPrimaryKeyColumns     = []string{"id"}
 	statusGeneratedColumns      = []string{}
 )

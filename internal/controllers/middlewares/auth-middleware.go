@@ -18,7 +18,7 @@ func (m *MiddlewareStorage) AuthMiddleware(c *gin.Context) {
 	tokenString, err := c.Cookie(body.AuthToken)
 	if err != nil {
 		if err == http.ErrNoCookie {
-			response.NewErrorResponse(c, errs.NewUnauthorized(err))
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 		response.NewErrorResponse(c, errs.NewInternal(err))
@@ -51,7 +51,7 @@ func (m *MiddlewareStorage) AuthMiddleware(c *gin.Context) {
 	user, err := tpportal.Users(tpportal.UserWhere.ID.EQ(claims.Id)).One(c, m.st.DBSX())
 	if err != nil {
 		if err == sql.ErrNoRows {
-			response.NewErrorResponse(c, errs.NewUnauthorized(err))
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 		response.NewErrorResponse(c, errs.NewInternal(err))

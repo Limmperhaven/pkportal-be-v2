@@ -40,24 +40,19 @@ func (u *Usecase) SignUp(ctx context.Context, req *tpportal.SignUpRequest) error
 		IsActivated:         false,
 		ActivationToken:     uuid.New().String(),
 		ChangePasswordToken: uuid.New().String(),
+		StatusID:            body.Registered.Int64(),
 	}
 	cfg := config.Get().Server
 	activationLink := cfg.Scheme + "://" + cfg.Domain + "/auth/activate/" + user.ActivationToken
 
-	err = u.st.QueryTx(ctx, func(tx *sqlx.Tx) error {
-		err = user.Insert(ctx, tx, boil.Infer())
-		if err != nil {
-			return errs.NewInternal(err)
-		}
-
-		err = u.mail.SendTextEmail(body.CreateAccountSubject, body.CreateAccountMessage+activationLink, []string{req.Email})
-		if err != nil {
-			return errs.NewInternal(err)
-		}
-		return nil
-	})
+	err = user.Insert(ctx, u.st.DBSX(), boil.Infer())
 	if err != nil {
-		return err
+		return errs.NewInternal(err)
+	}
+
+	err = u.mail.SendTextEmail(body.CreateAccountSubject, body.CreateAccountMessage+activationLink, []string{req.Email})
+	if err != nil {
+		return errs.NewInternal(err)
 	}
 
 	return nil
@@ -127,10 +122,35 @@ func (u *Usecase) RecoverPassword(ctx context.Context, email string) error {
 		return errs.NewInternal(err)
 	}
 
-	err = u.mail.SendTextEmail(body.RecoverPasswordSubject, body.RecoverPasswordMessage, []string{user.Email})
+	cfg := config.Get().Server
+	url := cfg.Domain + "/someUrl/" + user.ChangePasswordToken
+
+	err = u.mail.SendTextEmail(body.RecoverPasswordSubject, body.RecoverPasswordMessage+url, []string{user.Email})
 	if err != nil {
 		return errs.NewInternal(err)
 	}
 
+	return nil
+}
+
+func (u *Usecase) ConfirmRecover(ctx context.Context, token, newPassword string) error {
+	user, err := tpportal.Users(tpportal.UserWhere.ChangePasswordToken.EQ(token)).One(ctx, u.st.DBSX())
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return errs.NewNotFound(errors.New("пользователь с таким email не найден"))
+		}
+		return errs.NewInternal(err)
+	}
+
+	hashPassword, err := u.hashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+	user.HashPassword = hashPassword
+	user.ChangePasswordToken = uuid.New().String()
+	_, err = user.Update(ctx, u.st.DBSX(), boil.Infer())
+	if err != nil {
+		return errs.NewInternal(errors.New("ошибка при обновлении пользователя"))
+	}
 	return nil
 }

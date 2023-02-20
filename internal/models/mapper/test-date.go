@@ -15,3 +15,24 @@ func NewCreateTestDateFromRest(in *restmodels.CreateTestDateRequest) *tpportal.C
 		PubStatus:     in.PubStatus,
 	}
 }
+
+func ListTestDateResponseItemToRest(in *tpportal.ListTestDatesResponseItem) *restmodels.ListTestDatesResponseItem {
+	return &restmodels.ListTestDatesResponseItem{
+		Id:                in.Id,
+		Date:              in.Date,
+		Time:              in.Time,
+		Location:          in.Location,
+		RegisteredPersons: in.RegisteredPersons,
+		MaxPersons:        in.MaxPersons,
+		EducationYear:     in.EducationYear,
+		PubStatus:         in.PubStatus,
+	}
+}
+
+func ListTestDateResponseToRest(in []tpportal.ListTestDatesResponseItem) []restmodels.ListTestDatesResponseItem {
+	res := make([]restmodels.ListTestDatesResponseItem, len(in))
+	for i, item := range in {
+		res[i] = *ListTestDateResponseItemToRest(&item)
+	}
+	return res
+}

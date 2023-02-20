@@ -27,7 +27,7 @@ type User struct {
 	ParentPhoneNumber string `json:"parent_phone_number"`
 	CurrentSchool     string `json:"current_school"`
 	EducationYear     int64  `json:"education_year"`
-	IsActivated       bool   `json:"isActivated"`
+	IsActivated       bool   `json:"is_activated"`
 	Role              string `json:"role"`
 	StatusId          int64  `json:"status"`
 }
@@ -45,4 +45,8 @@ type CreateUserRequest struct {
 	IsActivated       bool   `json:"is_activated"`
 	Role              string `json:"role"`
 	StatusId          int64  `json:"status_id"`
+}
+
+type ConfirmRecoverRequest struct {
+	Password string `json:"password"`
 }

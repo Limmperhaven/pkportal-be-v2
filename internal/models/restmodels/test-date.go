@@ -8,3 +8,14 @@ type CreateTestDateRequest struct {
 	EducationYear int64  `json:"education_year"`
 	PubStatus     string `json:"pub_status"`
 }
+
+type ListTestDatesResponseItem struct {
+	Id                int64  `json:"id"`
+	Date              string `json:"date"`
+	Time              string `json:"time"`
+	Location          string `json:"location"`
+	RegisteredPersons int64  `json:"registered_persons"`
+	MaxPersons        int64  `json:"max_persons"`
+	EducationYear     int64  `json:"education_year"`
+	PubStatus         string `json:"pub_status"`
+}

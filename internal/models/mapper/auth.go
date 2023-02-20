@@ -39,6 +39,7 @@ func NewUserToRest(in *tpportal.User) *restmodels.User {
 		EducationYear:     int64(in.EducationYear),
 		Role:              in.Role.String(),
 		StatusId:          in.StatusID,
+		IsActivated:       in.IsActivated,
 	}
 }
 

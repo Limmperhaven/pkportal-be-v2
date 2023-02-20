@@ -71,6 +71,22 @@ func (s *ControllerStorage) ActivateAccount(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+func (s *ControllerStorage) ConfirmRecover(c *gin.Context) {
+	token := c.Param("token")
+	var req restmodels.ConfirmRecoverRequest
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(err))
+		return
+	}
+	err = s.uc.ConfirmRecover(c, token, req.Password)
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
 func (s *ControllerStorage) Logout(c *gin.Context) {
 	cfg := config.Get().Server
 

@@ -21,6 +21,7 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		auth.POST("/recover/:email", c.RecoverPassword)
 		auth.GET("/activate/:token", c.ActivateAccount)
 		auth.POST("/logout", c.Logout)
+		auth.POST("/confirmRecover/:token", c.ConfirmRecover)
 	}
 
 	authTd := authorized.Group("/td")
@@ -29,11 +30,12 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		adminTd.POST("/create", c.CreateTestDate)
 		authTd.GET("/byId/:id", c.GetTestDate)
 		adminTd.PUT("/byId/:id", c.UpdateTestDate)
-		adminTd.POST("/setStatus/:id/:status", c.SetTestDatePublicStatus)
+		adminTd.POST("/setStatus/:id/:status", c.SetTestDatePubStatus)
 		adminTd.GET("/list", c.ListTestDates)
 		authTd.GET("/listAvailable", c.ListAvailableTestDates)
 		adminTd.POST("/signUpUser/:userId/:tdId", c.SignUpUserToTestDate)
 		adminTd.POST("/signUpMe/:tdId", c.SignUpMeToTestDate)
+		adminTd.GET("/listCommonLocations", c.ListCommonLocations)
 	}
 
 	authUser := authorized.Group("/user")
@@ -43,8 +45,9 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		adminUser.GET("/byId/:id", c.GetUser)
 		adminUser.PUT("/byId/:id", c.UpdateUser)
 		adminUser.PUT("/list", c.ListUsers)
-		authUser.GET("/user/me", c.GetMe)
-		authUser.PUT("/user/me", c.UpdateMe)
+		adminUser.POST("/setStatus/:userId/:statusId", c.SetUserStatus)
+		authUser.GET("/me", c.GetMe)
+		authUser.GET("/listStatuses", c.ListStatuses)
 	}
 
 	authProfile := authorized.Group("/profiles")
@@ -66,8 +69,8 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		adminSubject.PUT("/byId/:id", c.UpdateSubject)
 		authSubject.GET("/list", c.ListSubjects)
 		authSubject.GET("/listFL", c.ListForeignLanguages)
-		adminSubject.POST("/setFLToUser/:userId/:languageId", c.SetForeignLanguageToUser)
-		authSubject.POST("/setFLToMe/:languageId", c.SetForeignLanguageToMe)
+		adminSubject.POST("/setToUser/:userId", c.SetSubjectToUser)
+		authSubject.POST("/setToMe", c.SetSubjectToMe)
 	}
 
 	authFL := authorized.Group("/fl")
@@ -87,7 +90,7 @@ func initCors(router *gin.Engine) http.Handler {
 		AllowOriginFunc:        func(origin string) bool { return true },
 		AllowOriginRequestFunc: func(r *http.Request, origin string) bool { return true },
 		AllowedMethods: []string{
-			http.MethodGet, http.MethodPost,
+			http.MethodGet, http.MethodPost, http.MethodPut,
 		},
 		AllowedHeaders:      []string{"accept", "authorization", "content-type"},
 		ExposedHeaders:      nil,

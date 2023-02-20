@@ -1,13 +1,31 @@
 package controllers
 
 import (
+	"errors"
+	"fmt"
+	"github.com/Limmperhaven/pkportal-be-v2/internal/body"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/controllers/response"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
+	"github.com/Limmperhaven/pkportal-be-v2/internal/models/mapper"
+	"github.com/Limmperhaven/pkportal-be-v2/internal/models/restmodels"
 	"github.com/gin-gonic/gin"
+	"net/http"
+	"strconv"
 )
 
 func (s *ControllerStorage) CreateTestDate(c *gin.Context) {
-	response.NewErrorResponse(c, errs.NewNotImplemented())
+	var req restmodels.CreateTestDateRequest
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(err))
+		return
+	}
+	err = s.uc.CreateTestDate(c, *mapper.NewCreateTestDateFromRest(&req))
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.Status(http.StatusOK)
 }
 
 func (s *ControllerStorage) GetTestDate(c *gin.Context) {
@@ -18,22 +36,87 @@ func (s *ControllerStorage) UpdateTestDate(c *gin.Context) {
 	response.NewErrorResponse(c, errs.NewNotImplemented())
 }
 
-func (s *ControllerStorage) SetTestDatePublicStatus(c *gin.Context) {
-	response.NewErrorResponse(c, errs.NewNotImplemented())
+func (s *ControllerStorage) SetTestDatePubStatus(c *gin.Context) {
+	tdStatus := c.Param("status")
+	tdIdParam := c.Param("id")
+	tdId, err := strconv.ParseInt(tdIdParam, 10, 64)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(fmt.Errorf("невалидный id даты тестирования: %s", tdIdParam)))
+		return
+	}
+	err = s.uc.SetTestDatePubStatus(c, tdId, tdStatus)
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.Status(http.StatusOK)
 }
 
 func (s *ControllerStorage) ListTestDates(c *gin.Context) {
-	response.NewErrorResponse(c, errs.NewNotImplemented())
+	tds, err := s.uc.ListTestDates(c, false)
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, mapper.ListTestDateResponseToRest(tds))
 }
 
 func (s *ControllerStorage) ListAvailableTestDates(c *gin.Context) {
-	response.NewErrorResponse(c, errs.NewNotImplemented())
+	tds, err := s.uc.ListTestDates(c, true)
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, mapper.ListTestDateResponseToRest(tds))
 }
 
 func (s *ControllerStorage) SignUpUserToTestDate(c *gin.Context) {
-	response.NewErrorResponse(c, errs.NewNotImplemented())
+	userIdParam := c.Param("userId")
+	userId, err := strconv.ParseInt(userIdParam, 10, 64)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(fmt.Errorf("невалидный id пользователя: %s", userIdParam)))
+		return
+	}
+	tdIdParam := c.Param("tdId")
+	tdId, err := strconv.ParseInt(tdIdParam, 10, 64)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(fmt.Errorf("невалидный id даты тестирования: %s", tdIdParam)))
+		return
+	}
+	err = s.uc.SignUpUserToTestDate(c, userId, tdId, false)
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.Status(http.StatusOK)
 }
 
 func (s *ControllerStorage) SignUpMeToTestDate(c *gin.Context) {
-	response.NewErrorResponse(c, errs.NewNotImplemented())
+	userIdCtx, ok := c.Get(body.UserId)
+	if !ok {
+		response.NewErrorResponse(c, errs.NewInternal(errors.New("в контексте отсутствует userId")))
+		return
+	}
+	userId := userIdCtx.(int64)
+	tdIdParam := c.Param("tdId")
+	tdId, err := strconv.ParseInt(tdIdParam, 10, 64)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(fmt.Errorf("невалидный id даты тестирования: %s", tdIdParam)))
+		return
+	}
+	err = s.uc.SignUpUserToTestDate(c, userId, tdId, true)
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
+func (s *ControllerStorage) ListCommonLocations(c *gin.Context) {
+	cls, err := s.uc.ListCommonLocations(c)
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, mapper.NewIdNameArrayToRest(cls))
 }

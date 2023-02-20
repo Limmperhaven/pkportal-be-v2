@@ -4,27 +4,31 @@
 package tpportal
 
 var TableNames = struct {
-	ForeignLanguages     string
-	ProfileSubjects      string
-	Profiles             string
-	Statuses             string
-	Subjects             string
-	TestDates            string
-	UserForeignLanguages string
-	UserProfileSubjects  string
-	UserProfiles         string
-	UserTestDates        string
-	Users                string
+	CommonLocations         string
+	CommonTestDateAddresses string
+	ForeignLanguages        string
+	ProfileSubjects         string
+	Profiles                string
+	Statuses                string
+	Subjects                string
+	TestDates               string
+	UserForeignLanguages    string
+	UserProfileSubjects     string
+	UserProfiles            string
+	UserTestDates           string
+	Users                   string
 }{
-	ForeignLanguages:     "foreign_languages",
-	ProfileSubjects:      "profile_subjects",
-	Profiles:             "profiles",
-	Statuses:             "statuses",
-	Subjects:             "subjects",
-	TestDates:            "test_dates",
-	UserForeignLanguages: "user_foreign_languages",
-	UserProfileSubjects:  "user_profile_subjects",
-	UserProfiles:         "user_profiles",
-	UserTestDates:        "user_test_dates",
-	Users:                "users",
+	CommonLocations:         "common_locations",
+	CommonTestDateAddresses: "common_test_date_addresses",
+	ForeignLanguages:        "foreign_languages",
+	ProfileSubjects:         "profile_subjects",
+	Profiles:                "profiles",
+	Statuses:                "statuses",
+	Subjects:                "subjects",
+	TestDates:               "test_dates",
+	UserForeignLanguages:    "user_foreign_languages",
+	UserProfileSubjects:     "user_profile_subjects",
+	UserProfiles:            "user_profiles",
+	UserTestDates:           "user_test_dates",
+	Users:                   "users",
 }
