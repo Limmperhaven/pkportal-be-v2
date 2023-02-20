@@ -15,23 +15,15 @@ import (
 )
 
 func (m *MiddlewareStorage) AuthMiddleware(c *gin.Context) {
-	tokenString, err := c.Cookie(body.AuthToken)
-	if err != nil {
-		if err == http.ErrNoCookie {
-			c.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
-		response.NewErrorResponse(c, errs.NewInternal(err))
-		return
-	}
+	tokenString := c.GetHeader(body.AuthToken)
 
-	cookieParts := strings.Split(tokenString, " ")
-	if len(cookieParts) != 2 || cookieParts[0] != "Bearer" {
+	headerParts := strings.Split(tokenString, " ")
+	if len(headerParts) != 2 || headerParts[0] != "Bearer" {
 		response.NewErrorResponse(c, errs.NewUnauthorized(errors.New("invalid cookie content")))
 		return
 	}
 
-	token, err := jwt.ParseWithClaims(cookieParts[1], &tpportal.Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(headerParts[1], &tpportal.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}

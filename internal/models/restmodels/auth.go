@@ -17,7 +17,7 @@ type SignInRequest struct {
 	Password string `json:"password"`
 }
 
-type User struct {
+type SignInResponse struct {
 	Id                int64  `json:"id"`
 	Email             string `json:"email"`
 	Fio               string `json:"fio"`
@@ -30,6 +30,7 @@ type User struct {
 	IsActivated       bool   `json:"is_activated"`
 	Role              string `json:"role"`
 	StatusId          int64  `json:"status"`
+	AuthToken         string `json:"auth_token"`
 }
 
 type CreateUserRequest struct {

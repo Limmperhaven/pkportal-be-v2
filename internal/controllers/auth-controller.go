@@ -38,17 +38,8 @@ func (s *ControllerStorage) SignIn(c *gin.Context) {
 		response.NewErrorResponse(c, err)
 		return
 	}
-	cfg := config.Get().Server
-	cookieSecure := cfg.Scheme == "https"
 
-	c.SetCookie(body.AuthToken,
-		"Bearer "+userAuth.AuthToken,
-		86400,
-		"/",
-		cfg.Domain,
-		cookieSecure,
-		true)
-	c.JSON(http.StatusOK, *mapper.NewUserToRest(&userAuth.User))
+	c.JSON(http.StatusOK, *mapper.NewSignInResponseToRest(&userAuth))
 }
 
 func (s *ControllerStorage) RecoverPassword(c *gin.Context) {

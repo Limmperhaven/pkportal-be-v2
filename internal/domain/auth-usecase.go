@@ -58,20 +58,20 @@ func (u *Usecase) SignUp(ctx context.Context, req *tpportal.SignUpRequest) error
 	return nil
 }
 
-func (u *Usecase) SignIn(ctx context.Context, req *tpportal.SignInRequest) (tpportal.UserWithAuth, error) {
+func (u *Usecase) SignIn(ctx context.Context, req *tpportal.SignInRequest) (tpportal.SignInResponse, error) {
 	user, err := tpportal.Users(
 		tpportal.UserWhere.Email.EQ(req.Email),
 	).One(ctx, u.st.DBSX())
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return tpportal.UserWithAuth{}, errs.NewUnauthorized(errors.New("Пользователь с таким email не найден"))
+			return tpportal.SignInResponse{}, errs.NewUnauthorized(errors.New("Пользователь с таким email не найден"))
 		}
-		return tpportal.UserWithAuth{}, errs.NewInternal(err)
+		return tpportal.SignInResponse{}, errs.NewInternal(err)
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.HashPassword), []byte(req.Password+body.AppSalt))
 	if err != nil {
-		return tpportal.UserWithAuth{}, errs.NewUnauthorized(errors.New("Введен неверный пароль"))
+		return tpportal.SignInResponse{}, errs.NewUnauthorized(errors.New("Введен неверный пароль"))
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tpportal.Claims{
@@ -83,10 +83,10 @@ func (u *Usecase) SignIn(ctx context.Context, req *tpportal.SignInRequest) (tppo
 	})
 	signedToken, err := token.SignedString([]byte(body.AppSalt))
 	if err != nil {
-		return tpportal.UserWithAuth{}, errs.NewInternal(err)
+		return tpportal.SignInResponse{}, errs.NewInternal(err)
 	}
 
-	return tpportal.UserWithAuth{
+	return tpportal.SignInResponse{
 		User:      *user,
 		AuthToken: signedToken,
 	}, nil

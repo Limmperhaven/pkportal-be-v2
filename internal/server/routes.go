@@ -93,7 +93,7 @@ func initCors(router *gin.Engine) http.Handler {
 			http.MethodGet, http.MethodPost, http.MethodPut,
 		},
 		AllowedHeaders:      []string{"accept", "authorization", "content-type"},
-		ExposedHeaders:      nil,
+		ExposedHeaders:      []string{"Set-Cookie", "authorization"},
 		AllowCredentials:    true,
 		AllowPrivateNetwork: true,
 		OptionsPassthrough:  false,

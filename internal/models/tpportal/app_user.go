@@ -19,7 +19,7 @@ type SignInRequest struct {
 	Password string
 }
 
-type UserWithAuth struct {
+type SignInResponse struct {
 	User      User
 	AuthToken string
 }

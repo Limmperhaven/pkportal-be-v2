@@ -26,20 +26,21 @@ func NewSignInRequestFromRest(in *restmodels.SignInRequest) *tpportal.SignInRequ
 	}
 }
 
-func NewUserToRest(in *tpportal.User) *restmodels.User {
-	return &restmodels.User{
-		Id:                in.ID,
-		Email:             in.Email,
-		Fio:               in.Fio,
-		DateOfBirth:       in.DateOfBirth.Format("02.01.2006"),
-		Gender:            in.Gender.String(),
-		PhoneNumber:       in.PhoneNumber,
-		ParentPhoneNumber: in.ParentPhoneNumber,
-		CurrentSchool:     in.CurrentSchool.String,
-		EducationYear:     int64(in.EducationYear),
-		Role:              in.Role.String(),
-		StatusId:          in.StatusID,
-		IsActivated:       in.IsActivated,
+func NewSignInResponseToRest(in *tpportal.SignInResponse) *restmodels.SignInResponse {
+	return &restmodels.SignInResponse{
+		Id:                in.User.ID,
+		Email:             in.User.Email,
+		Fio:               in.User.Fio,
+		DateOfBirth:       in.User.DateOfBirth.Format("02.01.2006"),
+		Gender:            in.User.Gender.String(),
+		PhoneNumber:       in.User.PhoneNumber,
+		ParentPhoneNumber: in.User.ParentPhoneNumber,
+		CurrentSchool:     in.User.CurrentSchool.String,
+		EducationYear:     int64(in.User.EducationYear),
+		Role:              in.User.Role.String(),
+		StatusId:          in.User.StatusID,
+		IsActivated:       in.User.IsActivated,
+		AuthToken:         in.AuthToken,
 	}
 }
 
