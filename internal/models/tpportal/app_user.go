@@ -20,8 +20,19 @@ type SignInRequest struct {
 }
 
 type SignInResponse struct {
-	User      User
-	AuthToken string
+	Id                int64
+	Email             string
+	Fio               string
+	DateOfBirth       string
+	Gender            string
+	PhoneNumber       string
+	ParentPhoneNumber string
+	CurrentSchool     string
+	EducationYear     int64
+	IsActivated       bool
+	Role              string
+	Status            IdName
+	AuthToken         string
 }
 
 type Claims struct {
@@ -61,7 +72,13 @@ type GetUserResponse struct {
 	FirstProfileSubject  IdName
 	SecondProfileSubject IdName
 	ForeignLanguage      IdName
+	TestDate             GetUserResponseTestDate
 	IsActivated          bool
+}
+
+type GetUserResponseTestDate struct {
+	TestDateId int64
+	IsAttended bool
 }
 
 type ListStatusesRequest struct {
@@ -78,4 +95,30 @@ type UpdateUserRequest struct {
 	ParentPhoneNumber string
 	CurrentSchool     string
 	EducationYear     int64
+}
+
+type UploadScreenshotRequest struct {
+	FileName    string
+	FileSize    int64
+	FileContent []byte
+}
+
+type UploadFileRequest struct {
+	FileKey     string
+	FileSize    int64
+	FileContent []byte
+	ContentType string
+}
+
+type DownloadScreenshotResponse struct {
+	FileName    string
+	FileContent []byte
+	ContentType string
+}
+
+type ListUsersRequest struct {
+	ProfileIds     []int64
+	EducationYears []int64
+	StatusIds      []int64
+	TestDateIds    []int64
 }

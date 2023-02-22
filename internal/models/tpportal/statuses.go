@@ -81,14 +81,14 @@ var StatusWhere = struct {
 
 // StatusRels is where relationship names are stored.
 var StatusRels = struct {
-	Users string
+	UserStatuses string
 }{
-	Users: "Users",
+	UserStatuses: "UserStatuses",
 }
 
 // statusR is where relationships are stored.
 type statusR struct {
-	Users UserSlice `boil:"Users" json:"Users" toml:"Users" yaml:"Users"`
+	UserStatuses UserStatusSlice `boil:"UserStatuses" json:"UserStatuses" toml:"UserStatuses" yaml:"UserStatuses"`
 }
 
 // NewStruct creates a new relationship struct
@@ -96,11 +96,11 @@ func (*statusR) NewStruct() *statusR {
 	return &statusR{}
 }
 
-func (r *statusR) GetUsers() UserSlice {
+func (r *statusR) GetUserStatuses() UserStatusSlice {
 	if r == nil {
 		return nil
 	}
-	return r.Users
+	return r.UserStatuses
 }
 
 // statusL is where Load methods for each relationship are stored.
@@ -392,23 +392,23 @@ func (q statusQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (boo
 	return count > 0, nil
 }
 
-// Users retrieves all the user's Users with an executor.
-func (o *Status) Users(mods ...qm.QueryMod) userQuery {
+// UserStatuses retrieves all the user_status's UserStatuses with an executor.
+func (o *Status) UserStatuses(mods ...qm.QueryMod) userStatusQuery {
 	var queryMods []qm.QueryMod
 	if len(mods) != 0 {
 		queryMods = append(queryMods, mods...)
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("\"users\".\"status_id\"=?", o.ID),
+		qm.Where("\"user_statuses\".\"status_id\"=?", o.ID),
 	)
 
-	return Users(queryMods...)
+	return UserStatuses(queryMods...)
 }
 
-// LoadUsers allows an eager lookup of values, cached into the
+// LoadUserStatuses allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (statusL) LoadUsers(ctx context.Context, e boil.ContextExecutor, singular bool, maybeStatus interface{}, mods queries.Applicator) error {
+func (statusL) LoadUserStatuses(ctx context.Context, e boil.ContextExecutor, singular bool, maybeStatus interface{}, mods queries.Applicator) error {
 	var slice []*Status
 	var object *Status
 
@@ -462,8 +462,8 @@ func (statusL) LoadUsers(ctx context.Context, e boil.ContextExecutor, singular b
 	}
 
 	query := NewQuery(
-		qm.From(`users`),
-		qm.WhereIn(`users.status_id in ?`, args...),
+		qm.From(`user_statuses`),
+		qm.WhereIn(`user_statuses.status_id in ?`, args...),
 	)
 	if mods != nil {
 		mods.Apply(query)
@@ -471,22 +471,22 @@ func (statusL) LoadUsers(ctx context.Context, e boil.ContextExecutor, singular b
 
 	results, err := query.QueryContext(ctx, e)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load users")
+		return errors.Wrap(err, "failed to eager load user_statuses")
 	}
 
-	var resultSlice []*User
+	var resultSlice []*UserStatus
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice users")
+		return errors.Wrap(err, "failed to bind eager loaded slice user_statuses")
 	}
 
 	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on users")
+		return errors.Wrap(err, "failed to close results in eager load on user_statuses")
 	}
 	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for users")
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for user_statuses")
 	}
 
-	if len(userAfterSelectHooks) != 0 {
+	if len(userStatusAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
 				return err
@@ -494,10 +494,10 @@ func (statusL) LoadUsers(ctx context.Context, e boil.ContextExecutor, singular b
 		}
 	}
 	if singular {
-		object.R.Users = resultSlice
+		object.R.UserStatuses = resultSlice
 		for _, foreign := range resultSlice {
 			if foreign.R == nil {
-				foreign.R = &userR{}
+				foreign.R = &userStatusR{}
 			}
 			foreign.R.Status = object
 		}
@@ -507,9 +507,9 @@ func (statusL) LoadUsers(ctx context.Context, e boil.ContextExecutor, singular b
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
 			if local.ID == foreign.StatusID {
-				local.R.Users = append(local.R.Users, foreign)
+				local.R.UserStatuses = append(local.R.UserStatuses, foreign)
 				if foreign.R == nil {
-					foreign.R = &userR{}
+					foreign.R = &userStatusR{}
 				}
 				foreign.R.Status = local
 				break
@@ -520,11 +520,11 @@ func (statusL) LoadUsers(ctx context.Context, e boil.ContextExecutor, singular b
 	return nil
 }
 
-// AddUsers adds the given related objects to the existing relationships
+// AddUserStatuses adds the given related objects to the existing relationships
 // of the status, optionally inserting them as new records.
-// Appends related to o.R.Users.
+// Appends related to o.R.UserStatuses.
 // Sets related.R.Status appropriately.
-func (o *Status) AddUsers(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*User) error {
+func (o *Status) AddUserStatuses(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*UserStatus) error {
 	var err error
 	for _, rel := range related {
 		if insert {
@@ -534,11 +534,11 @@ func (o *Status) AddUsers(ctx context.Context, exec boil.ContextExecutor, insert
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE \"users\" SET %s WHERE %s",
+				"UPDATE \"user_statuses\" SET %s WHERE %s",
 				strmangle.SetParamNames("\"", "\"", 1, []string{"status_id"}),
-				strmangle.WhereClause("\"", "\"", 2, userPrimaryKeyColumns),
+				strmangle.WhereClause("\"", "\"", 2, userStatusPrimaryKeyColumns),
 			)
-			values := []interface{}{o.ID, rel.ID}
+			values := []interface{}{o.ID, rel.UserID, rel.EducationYear}
 
 			if boil.IsDebug(ctx) {
 				writer := boil.DebugWriterFrom(ctx)
@@ -555,15 +555,15 @@ func (o *Status) AddUsers(ctx context.Context, exec boil.ContextExecutor, insert
 
 	if o.R == nil {
 		o.R = &statusR{
-			Users: related,
+			UserStatuses: related,
 		}
 	} else {
-		o.R.Users = append(o.R.Users, related...)
+		o.R.UserStatuses = append(o.R.UserStatuses, related...)
 	}
 
 	for _, rel := range related {
 		if rel.R == nil {
-			rel.R = &userR{
+			rel.R = &userStatusR{
 				Status: o,
 			}
 		} else {

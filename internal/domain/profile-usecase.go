@@ -52,7 +52,6 @@ func (u *Usecase) SetProfilesToUser(ctx context.Context, req tpportal.SetProfile
 		}
 		return errs.NewInternal(err)
 	}
-
 	if dateCheck {
 		td, err := tpportal.UserTestDates(
 			tpportal.UserTestDateWhere.UserID.EQ(user.ID),
@@ -69,14 +68,16 @@ func (u *Usecase) SetProfilesToUser(ctx context.Context, req tpportal.SetProfile
 			}
 		}
 	}
-
 	up := tpportal.UserProfile{
 		UserID:            user.ID,
 		UserEducationYear: user.EducationYear,
-		FirstProfileID:    null.Int64From(req.FirstProfileId),
-		SecondProfileID:   null.Int64From(req.SecondProfileId),
 	}
-
+	if req.FirstProfileId != 0 {
+		up.FirstProfileID = null.Int64From(req.FirstProfileId)
+	}
+	if req.SecondProfileId != 0 {
+		up.SecondProfileID = null.Int64From(req.SecondProfileId)
+	}
 	err = up.Upsert(ctx, u.st.DBSX(), true,
 		[]string{tpportal.UserProfileColumns.UserID, tpportal.UserProfileColumns.UserEducationYear},
 		boil.Whitelist(tpportal.UserProfileColumns.FirstProfileID, tpportal.UserProfileColumns.SecondProfileID),

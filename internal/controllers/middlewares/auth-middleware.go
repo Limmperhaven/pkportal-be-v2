@@ -40,7 +40,7 @@ func (m *MiddlewareStorage) AuthMiddleware(c *gin.Context) {
 		return
 	}
 
-	user, err := tpportal.Users(tpportal.UserWhere.ID.EQ(claims.Id)).One(c, m.st.DBSX())
+	user, err := tpportal.FindUser(c, m.st.DBSX(), claims.Id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.AbortWithStatus(http.StatusUnauthorized)
@@ -50,7 +50,6 @@ func (m *MiddlewareStorage) AuthMiddleware(c *gin.Context) {
 		return
 	}
 
-	c.Set("userId", claims.Id)
-	c.Set("userRole", user.Role.String())
+	c.Set("user", *user)
 	c.Next()
 }

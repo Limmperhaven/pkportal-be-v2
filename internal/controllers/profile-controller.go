@@ -8,6 +8,7 @@ import (
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/mapper"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/restmodels"
+	"github.com/Limmperhaven/pkportal-be-v2/internal/models/tpportal"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -56,12 +57,12 @@ func (s *ControllerStorage) SetProfilesToUser(c *gin.Context) {
 }
 
 func (s *ControllerStorage) SetProfilesToMe(c *gin.Context) {
-	userIdCtx, ok := c.Get(body.UserId)
+	userIdCtx, ok := c.Get(body.UserCtx)
 	if !ok {
 		response.NewErrorResponse(c, errs.NewInternal(errors.New("в контексте отсутствует userId")))
 		return
 	}
-	userId := userIdCtx.(int64)
+	userId := userIdCtx.(tpportal.User).ID
 	var req restmodels.SetProfilesToUserRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {

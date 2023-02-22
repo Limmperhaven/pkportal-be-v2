@@ -29,7 +29,7 @@ type SignInResponse struct {
 	EducationYear     int64  `json:"education_year"`
 	IsActivated       bool   `json:"is_activated"`
 	Role              string `json:"role"`
-	StatusId          int64  `json:"status"`
+	Status            IdName `json:"status"`
 	AuthToken         string `json:"auth_token"`
 }
 

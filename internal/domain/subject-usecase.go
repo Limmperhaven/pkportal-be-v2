@@ -52,7 +52,23 @@ func (u *Usecase) ListSubjects(ctx context.Context, profileId int64) ([]tpportal
 }
 
 func (u *Usecase) SetSubjectsToUser(ctx context.Context, req tpportal.SetSubjectsRequest, userId int64, dateCheck bool) error {
-	user, err := tpportal.FindUser(ctx, u.st.DBSX(), userId)
+	user, err := tpportal.Users(
+		tpportal.UserWhere.ID.EQ(userId),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserProfiles,
+				tpportal.UserProfileRels.FirstProfile,
+				tpportal.ProfileRels.Subjects,
+			),
+		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserProfiles,
+				tpportal.UserProfileRels.SecondProfile,
+				tpportal.ProfileRels.Subjects,
+			),
+		),
+	).One(ctx, u.st.DBSX())
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return errs.NewNotFound(fmt.Errorf("пользователь с id: %d не найден", userId))
@@ -76,12 +92,44 @@ func (u *Usecase) SetSubjectsToUser(ctx context.Context, req tpportal.SetSubject
 			}
 		}
 	}
-
 	ups := tpportal.UserProfileSubject{
-		UserID:                 user.ID,
-		UserEducationYear:      user.EducationYear,
-		FirstProfileSubjectID:  null.Int64From(req.FirstSubjectId),
-		SecondProfileSubjectID: null.Int64From(req.SecondSubjectId),
+		UserID:            user.ID,
+		UserEducationYear: user.EducationYear,
+	}
+	var firstUserProfile *tpportal.Profile
+	var secondUserProfile *tpportal.Profile
+	for _, up := range user.R.UserProfiles {
+		if up.UserEducationYear == user.EducationYear {
+			firstUserProfile = up.R.FirstProfile
+			secondUserProfile = up.R.SecondProfile
+			break
+		}
+	}
+	if req.FirstSubjectId != 0 {
+		valid := false
+		for _, subj := range firstUserProfile.R.Subjects {
+			if subj.ID == req.FirstSubjectId {
+				valid = true
+				break
+			}
+		}
+		if !valid {
+			return errs.NewBadRequest(errors.New("выбранный предмет 1 профиля не является предметом выбранного профиля"))
+		}
+		ups.FirstProfileSubjectID = null.Int64From(req.FirstSubjectId)
+	}
+	if req.SecondSubjectId != 0 {
+		valid := false
+		for _, subj := range secondUserProfile.R.Subjects {
+			if subj.ID == req.FirstSubjectId {
+				valid = true
+				break
+			}
+		}
+		if !valid {
+			return errs.NewBadRequest(errors.New("выбранный предмет 2 профиля не является предметом выбранного профиля"))
+		}
+		ups.SecondProfileSubjectID = null.Int64From(req.SecondSubjectId)
 	}
 	err = ups.Upsert(ctx, u.st.DBSX(), true,
 		[]string{tpportal.UserProfileSubjectColumns.UserID, tpportal.UserProfileSubjectColumns.UserEducationYear},

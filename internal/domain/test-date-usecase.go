@@ -21,11 +21,12 @@ func (u *Usecase) CreateTestDate(ctx context.Context, req tpportal.CreateTestDat
 	}
 
 	testDate := tpportal.TestDate{
-		DateTime:      dateTime,
-		Location:      req.Location,
-		MaxPersons:    int(req.MaxPersons),
-		EducationYear: int16(req.EducationYear),
-		PubStatus:     tpportal.TestDatePubStatus(req.PubStatus),
+		DateTime:         dateTime,
+		Location:         req.Location,
+		MaxPersons:       int(req.MaxPersons),
+		EducationYear:    int16(req.EducationYear),
+		PubStatus:        tpportal.TestDatePubStatus(req.PubStatus),
+		NotificationSent: false,
 	}
 	err = testDate.Insert(ctx, u.st.DBSX(), boil.Infer())
 	if err != nil {
@@ -47,10 +48,14 @@ func (u *Usecase) SetTestDatePubStatus(ctx context.Context, tdId int64, status s
 }
 
 func (u *Usecase) ListTestDates(ctx context.Context, availableOnly bool) ([]tpportal.ListTestDatesResponseItem, error) {
+	user, err := u.extractUserFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	queryMods := make([]qm.QueryMod, 0, 3)
 	queryMods = append(queryMods, qm.Load(
 		qm.Rels(tpportal.TestDateRels.UserTestDates),
-		qm.Where(tpportal.UserTestDateColumns.EducationYear+" = "+tpportal.UserColumns.EducationYear),
 	))
 	if availableOnly {
 		queryMods = append(queryMods, tpportal.TestDateWhere.PubStatus.EQ(tpportal.TestDatePubStatusShown))
@@ -63,7 +68,7 @@ func (u *Usecase) ListTestDates(ctx context.Context, availableOnly bool) ([]tppo
 
 	res := make([]tpportal.ListTestDatesResponseItem, 0, len(tds))
 	for _, td := range tds {
-		if availableOnly && td.MaxPersons == len(td.R.UserTestDates) {
+		if availableOnly && (td.MaxPersons == len(td.R.UserTestDates) || td.EducationYear != user.EducationYear) {
 			continue
 		}
 		date, time := u.formatDateTime(td.DateTime)
@@ -83,7 +88,38 @@ func (u *Usecase) ListTestDates(ctx context.Context, availableOnly bool) ([]tppo
 }
 
 func (u *Usecase) SignUpUserToTestDate(ctx context.Context, userId, tdId int64, dateCheck bool) error {
-	user, err := tpportal.FindUser(ctx, u.st.DBSX(), userId)
+	user, err := tpportal.Users(
+		tpportal.UserWhere.ID.EQ(userId),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserStatuses,
+			),
+		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserProfiles,
+				tpportal.UserProfileRels.FirstProfile,
+			),
+		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserProfiles,
+				tpportal.UserProfileRels.SecondProfile,
+			),
+		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserProfileSubjects,
+				tpportal.UserProfileSubjectRels.FirstProfileSubject,
+			),
+		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserProfileSubjects,
+				tpportal.UserProfileSubjectRels.SecondProfileSubject,
+			),
+		),
+	).One(ctx, u.st.DBSX())
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return errs.NewNotFound(fmt.Errorf("пользователь с id: %d не найден", userId))
@@ -135,7 +171,11 @@ func (u *Usecase) SignUpUserToTestDate(ctx context.Context, userId, tdId int64, 
 		EducationYear: user.EducationYear,
 		IsAttended:    false,
 	}
-	user.StatusID = body.SignedUpForTest.Int64()
+	for i := range user.R.UserStatuses {
+		if user.R.UserStatuses[i].EducationYear == user.EducationYear {
+			user.R.UserStatuses[i].StatusID = body.Registered.Int64()
+		}
+	}
 
 	err = u.st.QueryTx(ctx, func(tx *sqlx.Tx) error {
 		err := utd.Upsert(ctx, tx, true,
@@ -145,13 +185,62 @@ func (u *Usecase) SignUpUserToTestDate(ctx context.Context, userId, tdId int64, 
 		if err != nil {
 			return errs.NewInternal(err)
 		}
-		_, err = user.Update(ctx, tx, boil.Whitelist(tpportal.UserColumns.StatusID))
-		if err != nil {
-			return errs.NewInternal(err)
+		for _, us := range user.R.UserStatuses {
+			if us.EducationYear == user.EducationYear {
+				us.StatusID = body.Registered.Int64()
+				_, err = us.Update(ctx, tx, boil.Whitelist(tpportal.UserStatusColumns.StatusID))
+				if err != nil {
+					return errs.NewInternal(err)
+				}
+				return nil
+			}
 		}
-		return nil
+		return errs.NewNotFound(errors.New("у пользователя не хватает записи о статусе"))
 	})
-	return err
+	if err != nil {
+		return err
+	}
+
+	var userProfilesString string
+	if user.R.UserProfiles != nil {
+		for _, up := range user.R.UserProfiles {
+			if up.UserEducationYear == user.EducationYear {
+				if up.R.FirstProfile != nil {
+					userProfilesString = up.R.FirstProfile.Name
+				}
+				if up.R.SecondProfile != nil {
+					userProfilesString += ", " + up.R.SecondProfile.Name
+				}
+				break
+			}
+		}
+	}
+
+	var userProfileSubjectsString string
+	if user.R.UserProfileSubjects != nil {
+		for _, ups := range user.R.UserProfileSubjects {
+			if ups.UserEducationYear == user.EducationYear {
+				if ups.R.FirstProfileSubject != nil {
+					userProfileSubjectsString = ups.R.FirstProfileSubject.Name
+				}
+				if ups.R.SecondProfileSubject != nil {
+					userProfileSubjectsString += ", " + ups.R.SecondProfileSubject.Name
+				}
+				break
+			}
+		}
+	}
+
+	tdDate, tdTime := u.formatDateTime(td.DateTime)
+	emailMessage := fmt.Sprintf(body.SignUpForTestDateMessage, tdDate, td.Location,
+		tdTime, userProfilesString, userProfileSubjectsString)
+
+	err = u.mail.SendTextEmail(body.SignUpForTestDateSubject, emailMessage, []string{user.Email})
+	if err != nil {
+		return errs.NewInternal(err)
+	}
+
+	return nil
 }
 
 func (u *Usecase) ListCommonLocations(ctx context.Context) ([]tpportal.IdName, error) {
@@ -170,4 +259,31 @@ func (u *Usecase) ListCommonLocations(ctx context.Context) ([]tpportal.IdName, e
 		}
 	}
 	return res, nil
+}
+
+func (u *Usecase) SetTestDateAttended(ctx context.Context, userId, tdId int64) error {
+	user, err := tpportal.FindUser(ctx, u.st.DBSX(), userId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return errs.NewNotFound(fmt.Errorf("пользователь с id: %d не найден", userId))
+		}
+		return errs.NewInternal(err)
+	}
+
+	utd, err := tpportal.FindUserTestDate(ctx, u.st.DBSX(), user.ID, user.EducationYear)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return errs.NewNotFound(errors.New("указанная запись на тестирование не найдена"))
+		}
+		return errs.NewInternal(err)
+	}
+	if utd.TestDateID != tdId {
+		return errs.NewNotFound(errors.New("указанная запись на тестирование не найдена"))
+	}
+	utd.IsAttended = true
+	_, err = utd.Update(ctx, u.st.DBSX(), boil.Whitelist(tpportal.UserTestDateColumns.IsAttended))
+	if err != nil {
+		return errs.NewInternal(err)
+	}
+	return nil
 }

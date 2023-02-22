@@ -1,14 +1,35 @@
 package domain
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/body"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
+	"github.com/Limmperhaven/pkportal-be-v2/internal/models/tpportal"
+	"github.com/gabriel-vasile/mimetype"
+	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"strconv"
 	"strings"
 	"time"
 )
+
+func (u *Usecase) extractUserFromCtx(ctx context.Context) (tpportal.User, error) {
+	ginC, ok := ctx.(*gin.Context)
+	if !ok {
+		return tpportal.User{}, errs.NewInternal(errors.New("ошибка в преобразовании контекста"))
+	}
+	userCtx, ok := ginC.Get(body.UserCtx)
+	if !ok {
+		return tpportal.User{}, errs.NewInternal(errors.New("пользователь отсутствует в контексте"))
+	}
+	user, ok := userCtx.(tpportal.User)
+	if !ok {
+		return tpportal.User{}, errs.NewInternal(errors.New("невалидный формат пользователя в контексте"))
+	}
+	return user, nil
+}
 
 func (u *Usecase) parseDate(in string) (time.Time, error) {
 	date, err := time.Parse("02.01.2006", in)
@@ -57,4 +78,9 @@ func (u *Usecase) formatDateTime(in time.Time) (dateString, timeString string) {
 	dateString = in.Format("02.01.2006")
 	timeString = strconv.Itoa(in.Hour()) + ":" + strconv.Itoa(in.Minute())
 	return dateString, timeString
+}
+
+func (u *Usecase) detectContentType(data []byte) string {
+	mimetype.SetLimit(0)
+	return mimetype.Detect(data).String()
 }

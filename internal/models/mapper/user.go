@@ -23,7 +23,23 @@ func NewGetUserResponseToRest(in *tpportal.GetUserResponse) *restmodels.GetUserR
 		FirstProfileSubject:  *NewIdNameToRest(&in.FirstProfileSubject),
 		SecondProfileSubject: *NewIdNameToRest(&in.SecondProfileSubject),
 		ForeignLanguage:      *NewIdNameToRest(&in.ForeignLanguage),
+		TestDate:             *NewGetUserResponseTestDateToRest(&in.TestDate),
 		IsActivated:          in.IsActivated,
+	}
+}
+
+func NewGetUserResponseArrayToRest(in []tpportal.GetUserResponse) []restmodels.GetUserResponse {
+	res := make([]restmodels.GetUserResponse, len(in))
+	for i, item := range in {
+		res[i] = *NewGetUserResponseToRest(&item)
+	}
+	return res
+}
+
+func NewGetUserResponseTestDateToRest(in *tpportal.GetUserResponseTestDate) *restmodels.GetUserResponseTestDate {
+	return &restmodels.GetUserResponseTestDate{
+		TestDateId: in.TestDateId,
+		IsAttended: in.IsAttended,
 	}
 }
 
@@ -44,5 +60,22 @@ func NewUpdateUserRequestFromRest(in *restmodels.UpdateUserRequest) *tpportal.Up
 		ParentPhoneNumber: in.ParentPhoneNumber,
 		CurrentSchool:     in.CurrentSchool,
 		EducationYear:     in.EducationYear,
+	}
+}
+
+func NewUploadScreenshotRequestFromRest(fileName string, fileSize int64, fileContent []byte) *tpportal.UploadScreenshotRequest {
+	return &tpportal.UploadScreenshotRequest{
+		FileName:    fileName,
+		FileSize:    fileSize,
+		FileContent: fileContent,
+	}
+}
+
+func NewListUsersRequestFromRest(in *restmodels.ListUsersRequest) *tpportal.ListUsersRequest {
+	return &tpportal.ListUsersRequest{
+		ProfileIds:     in.ProfileIds,
+		EducationYears: in.EducationYears,
+		StatusIds:      in.StatusIds,
+		TestDateIds:    in.TestDateIds,
 	}
 }

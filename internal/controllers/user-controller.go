@@ -7,8 +7,10 @@ import (
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/mapper"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/restmodels"
+	"github.com/Limmperhaven/pkportal-be-v2/internal/models/tpportal"
 	"github.com/friendsofgo/errors"
 	"github.com/gin-gonic/gin"
+	"io"
 	"net/http"
 	"strconv"
 )
@@ -45,7 +47,18 @@ func (s *ControllerStorage) GetUser(c *gin.Context) {
 }
 
 func (s *ControllerStorage) ListUsers(c *gin.Context) {
-	response.NewErrorResponse(c, errs.NewNotImplemented())
+	var req restmodels.ListUsersRequest
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(err))
+		return
+	}
+	res, err := s.uc.ListUsers(c, *mapper.NewListUsersRequestFromRest(&req))
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, mapper.NewGetUserResponseArrayToRest(res))
 }
 
 func (s *ControllerStorage) UpdateUser(c *gin.Context) {
@@ -70,12 +83,12 @@ func (s *ControllerStorage) UpdateUser(c *gin.Context) {
 }
 
 func (s *ControllerStorage) GetMe(c *gin.Context) {
-	userIdCtx, ok := c.Get(body.UserId)
+	userIdCtx, ok := c.Get(body.UserCtx)
 	if !ok {
 		response.NewErrorResponse(c, errs.NewInternal(errors.New("в контексте отсутствует userId")))
 		return
 	}
-	userId := userIdCtx.(int64)
+	userId := userIdCtx.(tpportal.User).ID
 	user, err := s.uc.GetUser(c, userId)
 	if err != nil {
 		response.NewErrorResponse(c, err)
@@ -119,4 +132,45 @@ func (s *ControllerStorage) SetUserStatus(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusOK)
+}
+
+func (s *ControllerStorage) UploadScreenshot(c *gin.Context) {
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(err))
+		return
+	}
+	file, err := fileHeader.Open()
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewInternal(fmt.Errorf("ошибка при открытии файла: %s", err.Error())))
+		return
+	}
+	fileData, err := io.ReadAll(file)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewInternal(fmt.Errorf("ошибка при чтении файла: %s", err.Error())))
+		return
+	}
+	err = s.uc.UploadScreenshot(c, *mapper.NewUploadScreenshotRequestFromRest(
+		fileHeader.Filename, fileHeader.Size, fileData))
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
+func (s *ControllerStorage) DownloadScreenshot(c *gin.Context) {
+	userIdParam := c.Param("userId")
+	userId, err := strconv.ParseInt(userIdParam, 10, 64)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(fmt.Errorf("невалидный userId: %s", userIdParam)))
+		return
+	}
+	res, err := s.uc.DownloadScreenshot(c, userId)
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", res.FileName))
+	c.Data(http.StatusOK, res.ContentType, res.FileContent)
 }

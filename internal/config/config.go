@@ -10,6 +10,7 @@ type Config struct {
 	App      App      `yaml:"app"`
 	Server   Server   `yaml:"server"`
 	Postgres Postgres `yaml:"psql"`
+	S3       S3       `yaml:"s3"`
 	SMTP     SMTP     `yaml:"smtp"`
 }
 
@@ -34,6 +35,15 @@ type Postgres struct {
 	SSLMode      string `yaml:"sslmode"`
 	MaxIdleConns int    `yaml:"max_idle_conns"`
 	MaxOpenConns int    `yaml:"max_open_conns"`
+}
+
+type S3 struct {
+	Host           string `yaml:"host"`
+	AccessKey      string `yaml:"access_key"`
+	SecretKey      string `yaml:"secret_key"`
+	BucketName     string `yaml:"bucket_name"`
+	ServerLocation string `yaml:"server_location"`
+	UseSSL         bool   `yaml:"use_ssl"`
 }
 
 type SMTP struct {

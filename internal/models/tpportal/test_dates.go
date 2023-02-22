@@ -23,47 +23,52 @@ import (
 
 // TestDate is an object representing the database table.
 type TestDate struct {
-	ID            int64             `boil:"id" json:"id" toml:"id" yaml:"id"`
-	DateTime      time.Time         `boil:"date_time" json:"date_time" toml:"date_time" yaml:"date_time"`
-	Location      string            `boil:"location" json:"location" toml:"location" yaml:"location"`
-	MaxPersons    int               `boil:"max_persons" json:"max_persons" toml:"max_persons" yaml:"max_persons"`
-	EducationYear int16             `boil:"education_year" json:"education_year" toml:"education_year" yaml:"education_year"`
-	PubStatus     TestDatePubStatus `boil:"pub_status" json:"pub_status" toml:"pub_status" yaml:"pub_status"`
+	ID               int64             `boil:"id" json:"id" toml:"id" yaml:"id"`
+	DateTime         time.Time         `boil:"date_time" json:"date_time" toml:"date_time" yaml:"date_time"`
+	Location         string            `boil:"location" json:"location" toml:"location" yaml:"location"`
+	MaxPersons       int               `boil:"max_persons" json:"max_persons" toml:"max_persons" yaml:"max_persons"`
+	EducationYear    int16             `boil:"education_year" json:"education_year" toml:"education_year" yaml:"education_year"`
+	PubStatus        TestDatePubStatus `boil:"pub_status" json:"pub_status" toml:"pub_status" yaml:"pub_status"`
+	NotificationSent bool              `boil:"notification_sent" json:"notification_sent" toml:"notification_sent" yaml:"notification_sent"`
 
 	R *testDateR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L testDateL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var TestDateColumns = struct {
-	ID            string
-	DateTime      string
-	Location      string
-	MaxPersons    string
-	EducationYear string
-	PubStatus     string
+	ID               string
+	DateTime         string
+	Location         string
+	MaxPersons       string
+	EducationYear    string
+	PubStatus        string
+	NotificationSent string
 }{
-	ID:            "id",
-	DateTime:      "date_time",
-	Location:      "location",
-	MaxPersons:    "max_persons",
-	EducationYear: "education_year",
-	PubStatus:     "pub_status",
+	ID:               "id",
+	DateTime:         "date_time",
+	Location:         "location",
+	MaxPersons:       "max_persons",
+	EducationYear:    "education_year",
+	PubStatus:        "pub_status",
+	NotificationSent: "notification_sent",
 }
 
 var TestDateTableColumns = struct {
-	ID            string
-	DateTime      string
-	Location      string
-	MaxPersons    string
-	EducationYear string
-	PubStatus     string
+	ID               string
+	DateTime         string
+	Location         string
+	MaxPersons       string
+	EducationYear    string
+	PubStatus        string
+	NotificationSent string
 }{
-	ID:            "test_dates.id",
-	DateTime:      "test_dates.date_time",
-	Location:      "test_dates.location",
-	MaxPersons:    "test_dates.max_persons",
-	EducationYear: "test_dates.education_year",
-	PubStatus:     "test_dates.pub_status",
+	ID:               "test_dates.id",
+	DateTime:         "test_dates.date_time",
+	Location:         "test_dates.location",
+	MaxPersons:       "test_dates.max_persons",
+	EducationYear:    "test_dates.education_year",
+	PubStatus:        "test_dates.pub_status",
+	NotificationSent: "test_dates.notification_sent",
 }
 
 // Generated where
@@ -148,19 +153,21 @@ func (w whereHelperTestDatePubStatus) NIN(slice []TestDatePubStatus) qm.QueryMod
 }
 
 var TestDateWhere = struct {
-	ID            whereHelperint64
-	DateTime      whereHelpertime_Time
-	Location      whereHelperstring
-	MaxPersons    whereHelperint
-	EducationYear whereHelperint16
-	PubStatus     whereHelperTestDatePubStatus
+	ID               whereHelperint64
+	DateTime         whereHelpertime_Time
+	Location         whereHelperstring
+	MaxPersons       whereHelperint
+	EducationYear    whereHelperint16
+	PubStatus        whereHelperTestDatePubStatus
+	NotificationSent whereHelperbool
 }{
-	ID:            whereHelperint64{field: "\"test_dates\".\"id\""},
-	DateTime:      whereHelpertime_Time{field: "\"test_dates\".\"date_time\""},
-	Location:      whereHelperstring{field: "\"test_dates\".\"location\""},
-	MaxPersons:    whereHelperint{field: "\"test_dates\".\"max_persons\""},
-	EducationYear: whereHelperint16{field: "\"test_dates\".\"education_year\""},
-	PubStatus:     whereHelperTestDatePubStatus{field: "\"test_dates\".\"pub_status\""},
+	ID:               whereHelperint64{field: "\"test_dates\".\"id\""},
+	DateTime:         whereHelpertime_Time{field: "\"test_dates\".\"date_time\""},
+	Location:         whereHelperstring{field: "\"test_dates\".\"location\""},
+	MaxPersons:       whereHelperint{field: "\"test_dates\".\"max_persons\""},
+	EducationYear:    whereHelperint16{field: "\"test_dates\".\"education_year\""},
+	PubStatus:        whereHelperTestDatePubStatus{field: "\"test_dates\".\"pub_status\""},
+	NotificationSent: whereHelperbool{field: "\"test_dates\".\"notification_sent\""},
 }
 
 // TestDateRels is where relationship names are stored.
@@ -191,9 +198,9 @@ func (r *testDateR) GetUserTestDates() UserTestDateSlice {
 type testDateL struct{}
 
 var (
-	testDateAllColumns            = []string{"id", "date_time", "location", "max_persons", "education_year", "pub_status"}
+	testDateAllColumns            = []string{"id", "date_time", "location", "max_persons", "education_year", "pub_status", "notification_sent"}
 	testDateColumnsWithoutDefault = []string{"date_time", "location", "max_persons", "education_year"}
-	testDateColumnsWithDefault    = []string{"id", "pub_status"}
+	testDateColumnsWithDefault    = []string{"id", "pub_status", "notification_sent"}
 	testDatePrimaryKeyColumns     = []string{"id"}
 	testDateGeneratedColumns      = []string{}
 )

@@ -38,7 +38,6 @@ type User struct {
 	ActivationToken     string      `boil:"activation_token" json:"activation_token" toml:"activation_token" yaml:"activation_token"`
 	ChangePasswordToken string      `boil:"change_password_token" json:"change_password_token" toml:"change_password_token" yaml:"change_password_token"`
 	Role                UserRole    `boil:"role" json:"role" toml:"role" yaml:"role"`
-	StatusID            int64       `boil:"status_id" json:"status_id" toml:"status_id" yaml:"status_id"`
 
 	R *userR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -59,7 +58,6 @@ var UserColumns = struct {
 	ActivationToken     string
 	ChangePasswordToken string
 	Role                string
-	StatusID            string
 }{
 	ID:                  "id",
 	Email:               "email",
@@ -75,7 +73,6 @@ var UserColumns = struct {
 	ActivationToken:     "activation_token",
 	ChangePasswordToken: "change_password_token",
 	Role:                "role",
-	StatusID:            "status_id",
 }
 
 var UserTableColumns = struct {
@@ -93,7 +90,6 @@ var UserTableColumns = struct {
 	ActivationToken     string
 	ChangePasswordToken string
 	Role                string
-	StatusID            string
 }{
 	ID:                  "users.id",
 	Email:               "users.email",
@@ -109,7 +105,6 @@ var UserTableColumns = struct {
 	ActivationToken:     "users.activation_token",
 	ChangePasswordToken: "users.change_password_token",
 	Role:                "users.role",
-	StatusID:            "users.status_id",
 }
 
 // Generated where
@@ -237,7 +232,6 @@ var UserWhere = struct {
 	ActivationToken     whereHelperstring
 	ChangePasswordToken whereHelperstring
 	Role                whereHelperUserRole
-	StatusID            whereHelperint64
 }{
 	ID:                  whereHelperint64{field: "\"users\".\"id\""},
 	Email:               whereHelperstring{field: "\"users\".\"email\""},
@@ -253,43 +247,38 @@ var UserWhere = struct {
 	ActivationToken:     whereHelperstring{field: "\"users\".\"activation_token\""},
 	ChangePasswordToken: whereHelperstring{field: "\"users\".\"change_password_token\""},
 	Role:                whereHelperUserRole{field: "\"users\".\"role\""},
-	StatusID:            whereHelperint64{field: "\"users\".\"status_id\""},
 }
 
 // UserRels is where relationship names are stored.
 var UserRels = struct {
-	Status               string
 	UserForeignLanguages string
 	UserProfileSubjects  string
 	UserProfiles         string
+	UserScreenshots      string
+	UserStatuses         string
 	UserTestDates        string
 }{
-	Status:               "Status",
 	UserForeignLanguages: "UserForeignLanguages",
 	UserProfileSubjects:  "UserProfileSubjects",
 	UserProfiles:         "UserProfiles",
+	UserScreenshots:      "UserScreenshots",
+	UserStatuses:         "UserStatuses",
 	UserTestDates:        "UserTestDates",
 }
 
 // userR is where relationships are stored.
 type userR struct {
-	Status               *Status                  `boil:"Status" json:"Status" toml:"Status" yaml:"Status"`
 	UserForeignLanguages UserForeignLanguageSlice `boil:"UserForeignLanguages" json:"UserForeignLanguages" toml:"UserForeignLanguages" yaml:"UserForeignLanguages"`
 	UserProfileSubjects  UserProfileSubjectSlice  `boil:"UserProfileSubjects" json:"UserProfileSubjects" toml:"UserProfileSubjects" yaml:"UserProfileSubjects"`
 	UserProfiles         UserProfileSlice         `boil:"UserProfiles" json:"UserProfiles" toml:"UserProfiles" yaml:"UserProfiles"`
+	UserScreenshots      UserScreenshotSlice      `boil:"UserScreenshots" json:"UserScreenshots" toml:"UserScreenshots" yaml:"UserScreenshots"`
+	UserStatuses         UserStatusSlice          `boil:"UserStatuses" json:"UserStatuses" toml:"UserStatuses" yaml:"UserStatuses"`
 	UserTestDates        UserTestDateSlice        `boil:"UserTestDates" json:"UserTestDates" toml:"UserTestDates" yaml:"UserTestDates"`
 }
 
 // NewStruct creates a new relationship struct
 func (*userR) NewStruct() *userR {
 	return &userR{}
-}
-
-func (r *userR) GetStatus() *Status {
-	if r == nil {
-		return nil
-	}
-	return r.Status
 }
 
 func (r *userR) GetUserForeignLanguages() UserForeignLanguageSlice {
@@ -313,6 +302,20 @@ func (r *userR) GetUserProfiles() UserProfileSlice {
 	return r.UserProfiles
 }
 
+func (r *userR) GetUserScreenshots() UserScreenshotSlice {
+	if r == nil {
+		return nil
+	}
+	return r.UserScreenshots
+}
+
+func (r *userR) GetUserStatuses() UserStatusSlice {
+	if r == nil {
+		return nil
+	}
+	return r.UserStatuses
+}
+
 func (r *userR) GetUserTestDates() UserTestDateSlice {
 	if r == nil {
 		return nil
@@ -324,9 +327,9 @@ func (r *userR) GetUserTestDates() UserTestDateSlice {
 type userL struct{}
 
 var (
-	userAllColumns            = []string{"id", "email", "hash_password", "fio", "date_of_birth", "gender", "phone_number", "parent_phone_number", "current_school", "education_year", "is_activated", "activation_token", "change_password_token", "role", "status_id"}
+	userAllColumns            = []string{"id", "email", "hash_password", "fio", "date_of_birth", "gender", "phone_number", "parent_phone_number", "current_school", "education_year", "is_activated", "activation_token", "change_password_token", "role"}
 	userColumnsWithoutDefault = []string{"email", "hash_password", "fio", "date_of_birth", "gender", "phone_number", "parent_phone_number", "education_year", "activation_token", "change_password_token"}
-	userColumnsWithDefault    = []string{"id", "current_school", "is_activated", "role", "status_id"}
+	userColumnsWithDefault    = []string{"id", "current_school", "is_activated", "role"}
 	userPrimaryKeyColumns     = []string{"id"}
 	userGeneratedColumns      = []string{}
 )
@@ -609,17 +612,6 @@ func (q userQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool,
 	return count > 0, nil
 }
 
-// Status pointed to by the foreign key.
-func (o *User) Status(mods ...qm.QueryMod) statusQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("\"id\" = ?", o.StatusID),
-	}
-
-	queryMods = append(queryMods, mods...)
-
-	return Statuses(queryMods...)
-}
-
 // UserForeignLanguages retrieves all the user_foreign_language's UserForeignLanguages with an executor.
 func (o *User) UserForeignLanguages(mods ...qm.QueryMod) userForeignLanguageQuery {
 	var queryMods []qm.QueryMod
@@ -662,6 +654,34 @@ func (o *User) UserProfiles(mods ...qm.QueryMod) userProfileQuery {
 	return UserProfiles(queryMods...)
 }
 
+// UserScreenshots retrieves all the user_screenshot's UserScreenshots with an executor.
+func (o *User) UserScreenshots(mods ...qm.QueryMod) userScreenshotQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"user_screenshots\".\"user_id\"=?", o.ID),
+	)
+
+	return UserScreenshots(queryMods...)
+}
+
+// UserStatuses retrieves all the user_status's UserStatuses with an executor.
+func (o *User) UserStatuses(mods ...qm.QueryMod) userStatusQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"user_statuses\".\"user_id\"=?", o.ID),
+	)
+
+	return UserStatuses(queryMods...)
+}
+
 // UserTestDates retrieves all the user_test_date's UserTestDates with an executor.
 func (o *User) UserTestDates(mods ...qm.QueryMod) userTestDateQuery {
 	var queryMods []qm.QueryMod
@@ -674,126 +694,6 @@ func (o *User) UserTestDates(mods ...qm.QueryMod) userTestDateQuery {
 	)
 
 	return UserTestDates(queryMods...)
-}
-
-// LoadStatus allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for an N-1 relationship.
-func (userL) LoadStatus(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
-	var slice []*User
-	var object *User
-
-	if singular {
-		var ok bool
-		object, ok = maybeUser.(*User)
-		if !ok {
-			object = new(User)
-			ok = queries.SetFromEmbeddedStruct(&object, &maybeUser)
-			if !ok {
-				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeUser))
-			}
-		}
-	} else {
-		s, ok := maybeUser.(*[]*User)
-		if ok {
-			slice = *s
-		} else {
-			ok = queries.SetFromEmbeddedStruct(&slice, maybeUser)
-			if !ok {
-				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeUser))
-			}
-		}
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &userR{}
-		}
-		args = append(args, object.StatusID)
-
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &userR{}
-			}
-
-			for _, a := range args {
-				if a == obj.StatusID {
-					continue Outer
-				}
-			}
-
-			args = append(args, obj.StatusID)
-
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(
-		qm.From(`statuses`),
-		qm.WhereIn(`statuses.id in ?`, args...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load Status")
-	}
-
-	var resultSlice []*Status
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice Status")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results of eager load for statuses")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for statuses")
-	}
-
-	if len(statusAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
-				return err
-			}
-		}
-	}
-
-	if len(resultSlice) == 0 {
-		return nil
-	}
-
-	if singular {
-		foreign := resultSlice[0]
-		object.R.Status = foreign
-		if foreign.R == nil {
-			foreign.R = &statusR{}
-		}
-		foreign.R.Users = append(foreign.R.Users, object)
-		return nil
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if local.StatusID == foreign.ID {
-				local.R.Status = foreign
-				if foreign.R == nil {
-					foreign.R = &statusR{}
-				}
-				foreign.R.Users = append(foreign.R.Users, local)
-				break
-			}
-		}
-	}
-
-	return nil
 }
 
 // LoadUserForeignLanguages allows an eager lookup of values, cached into the
@@ -1138,6 +1038,234 @@ func (userL) LoadUserProfiles(ctx context.Context, e boil.ContextExecutor, singu
 	return nil
 }
 
+// LoadUserScreenshots allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (userL) LoadUserScreenshots(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		var ok bool
+		object, ok = maybeUser.(*User)
+		if !ok {
+			object = new(User)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeUser))
+			}
+		}
+	} else {
+		s, ok := maybeUser.(*[]*User)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeUser))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`user_screenshots`),
+		qm.WhereIn(`user_screenshots.user_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load user_screenshots")
+	}
+
+	var resultSlice []*UserScreenshot
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice user_screenshots")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on user_screenshots")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for user_screenshots")
+	}
+
+	if len(userScreenshotAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.UserScreenshots = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &userScreenshotR{}
+			}
+			foreign.R.User = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.UserID {
+				local.R.UserScreenshots = append(local.R.UserScreenshots, foreign)
+				if foreign.R == nil {
+					foreign.R = &userScreenshotR{}
+				}
+				foreign.R.User = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadUserStatuses allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (userL) LoadUserStatuses(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		var ok bool
+		object, ok = maybeUser.(*User)
+		if !ok {
+			object = new(User)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeUser))
+			}
+		}
+	} else {
+		s, ok := maybeUser.(*[]*User)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeUser))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`user_statuses`),
+		qm.WhereIn(`user_statuses.user_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load user_statuses")
+	}
+
+	var resultSlice []*UserStatus
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice user_statuses")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on user_statuses")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for user_statuses")
+	}
+
+	if len(userStatusAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.UserStatuses = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &userStatusR{}
+			}
+			foreign.R.User = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.UserID {
+				local.R.UserStatuses = append(local.R.UserStatuses, foreign)
+				if foreign.R == nil {
+					foreign.R = &userStatusR{}
+				}
+				foreign.R.User = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // LoadUserTestDates allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
 func (userL) LoadUserTestDates(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
@@ -1247,53 +1375,6 @@ func (userL) LoadUserTestDates(ctx context.Context, e boil.ContextExecutor, sing
 				break
 			}
 		}
-	}
-
-	return nil
-}
-
-// SetStatus of the user to the related item.
-// Sets o.R.Status to related.
-// Adds o to related.R.Users.
-func (o *User) SetStatus(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Status) error {
-	var err error
-	if insert {
-		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
-		}
-	}
-
-	updateQuery := fmt.Sprintf(
-		"UPDATE \"users\" SET %s WHERE %s",
-		strmangle.SetParamNames("\"", "\"", 1, []string{"status_id"}),
-		strmangle.WhereClause("\"", "\"", 2, userPrimaryKeyColumns),
-	)
-	values := []interface{}{related.ID, o.ID}
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, updateQuery)
-		fmt.Fprintln(writer, values)
-	}
-	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	o.StatusID = related.ID
-	if o.R == nil {
-		o.R = &userR{
-			Status: related,
-		}
-	} else {
-		o.R.Status = related
-	}
-
-	if related.R == nil {
-		related.R = &statusR{
-			Users: UserSlice{o},
-		}
-	} else {
-		related.R.Users = append(related.R.Users, o)
 	}
 
 	return nil
@@ -1449,6 +1530,112 @@ func (o *User) AddUserProfiles(ctx context.Context, exec boil.ContextExecutor, i
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &userProfileR{
+				User: o,
+			}
+		} else {
+			rel.R.User = o
+		}
+	}
+	return nil
+}
+
+// AddUserScreenshots adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.UserScreenshots.
+// Sets related.R.User appropriately.
+func (o *User) AddUserScreenshots(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*UserScreenshot) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.UserID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"user_screenshots\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
+				strmangle.WhereClause("\"", "\"", 2, userScreenshotPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.UserID, rel.EducationYear}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.UserID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &userR{
+			UserScreenshots: related,
+		}
+	} else {
+		o.R.UserScreenshots = append(o.R.UserScreenshots, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &userScreenshotR{
+				User: o,
+			}
+		} else {
+			rel.R.User = o
+		}
+	}
+	return nil
+}
+
+// AddUserStatuses adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.UserStatuses.
+// Sets related.R.User appropriately.
+func (o *User) AddUserStatuses(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*UserStatus) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.UserID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"user_statuses\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
+				strmangle.WhereClause("\"", "\"", 2, userStatusPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.UserID, rel.EducationYear}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.UserID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &userR{
+			UserStatuses: related,
+		}
+	} else {
+		o.R.UserStatuses = append(o.R.UserStatuses, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &userStatusR{
 				User: o,
 			}
 		} else {

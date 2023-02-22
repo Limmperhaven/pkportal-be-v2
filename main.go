@@ -8,6 +8,7 @@ import (
 	"github.com/Limmperhaven/pkportal-be-v2/internal/domain"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/server"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/storage/stpg"
+	"github.com/Limmperhaven/pkportal-be-v2/internal/worker"
 	"log"
 )
 
@@ -22,9 +23,16 @@ func main() {
 		log.Fatalf("error initializing database: %s", err.Error())
 	}
 	mail := client.NewMailClient(&cfg.SMTP)
-	uc := domain.NewUsecase(mail)
+	s3, err := client.InitMinio(&cfg.S3)
+	if err != nil {
+		log.Fatalf("error initializing minio client: %s", err.Error())
+	}
+	uc := domain.NewUsecase(mail, s3)
 	c := controllers.NewController(uc)
 	m := middlewares.NewMiddlewareStorage()
 	srv := server.NewServer(&cfg.Server, c, m)
+	workerPool := worker.NewPool(mail, s3)
+	workerPool.AddWorker(worker.NotificationWorker)
+	workerPool.Start()
 	srv.Run()
 }

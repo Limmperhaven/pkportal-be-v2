@@ -36,6 +36,7 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		adminTd.POST("/signUpUser/:userId/:tdId", c.SignUpUserToTestDate)
 		adminTd.POST("/signUpMe/:tdId", c.SignUpMeToTestDate)
 		adminTd.GET("/listCommonLocations", c.ListCommonLocations)
+		adminTd.POST("/setAttended/:userId/:tdId", c.SetTestDateAttended)
 	}
 
 	authUser := authorized.Group("/user")
@@ -44,10 +45,12 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		adminUser.POST("/create", c.CreateUser)
 		adminUser.GET("/byId/:id", c.GetUser)
 		adminUser.PUT("/byId/:id", c.UpdateUser)
-		adminUser.PUT("/list", c.ListUsers)
+		adminUser.GET("/list", c.ListUsers)
 		adminUser.POST("/setStatus/:userId/:statusId", c.SetUserStatus)
+		adminUser.GET("/downloadScreenshot/:userId", c.DownloadScreenshot)
 		authUser.GET("/me", c.GetMe)
 		authUser.GET("/listStatuses", c.ListStatuses)
+		authUser.POST("/uploadScreenshot", c.UploadScreenshot)
 	}
 
 	authProfile := authorized.Group("/profiles")
@@ -93,7 +96,7 @@ func initCors(router *gin.Engine) http.Handler {
 			http.MethodGet, http.MethodPost, http.MethodPut,
 		},
 		AllowedHeaders:      []string{"accept", "authorization", "content-type"},
-		ExposedHeaders:      []string{"Set-Cookie", "authorization"},
+		ExposedHeaders:      []string{"Set-Cookie", "authorization", "Content-Disposition"},
 		AllowCredentials:    true,
 		AllowPrivateNetwork: true,
 		OptionsPassthrough:  false,

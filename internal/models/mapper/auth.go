@@ -28,18 +28,18 @@ func NewSignInRequestFromRest(in *restmodels.SignInRequest) *tpportal.SignInRequ
 
 func NewSignInResponseToRest(in *tpportal.SignInResponse) *restmodels.SignInResponse {
 	return &restmodels.SignInResponse{
-		Id:                in.User.ID,
-		Email:             in.User.Email,
-		Fio:               in.User.Fio,
-		DateOfBirth:       in.User.DateOfBirth.Format("02.01.2006"),
-		Gender:            in.User.Gender.String(),
-		PhoneNumber:       in.User.PhoneNumber,
-		ParentPhoneNumber: in.User.ParentPhoneNumber,
-		CurrentSchool:     in.User.CurrentSchool.String,
-		EducationYear:     int64(in.User.EducationYear),
-		Role:              in.User.Role.String(),
-		StatusId:          in.User.StatusID,
-		IsActivated:       in.User.IsActivated,
+		Id:                in.Id,
+		Email:             in.Email,
+		Fio:               in.Fio,
+		DateOfBirth:       in.DateOfBirth,
+		Gender:            in.Gender,
+		PhoneNumber:       in.PhoneNumber,
+		ParentPhoneNumber: in.ParentPhoneNumber,
+		CurrentSchool:     in.CurrentSchool,
+		EducationYear:     in.EducationYear,
+		Role:              in.Role,
+		Status:            *NewIdNameToRest(&in.Status),
+		IsActivated:       in.IsActivated,
 		AuthToken:         in.AuthToken,
 	}
 }

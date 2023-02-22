@@ -7,6 +7,7 @@ import (
 	"github.com/Limmperhaven/pkportal-be-v2/internal/controllers/response"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/mapper"
+	"github.com/Limmperhaven/pkportal-be-v2/internal/models/tpportal"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -55,12 +56,12 @@ func (s *ControllerStorage) SetForeignLanguageToUser(c *gin.Context) {
 }
 
 func (s *ControllerStorage) SetForeignLanguageToMe(c *gin.Context) {
-	userIdCtx, ok := c.Get(body.UserId)
+	userIdCtx, ok := c.Get(body.UserCtx)
 	if !ok {
 		response.NewErrorResponse(c, errs.NewInternal(errors.New("в контексте отсутствует userId")))
 		return
 	}
-	userId := userIdCtx.(int64)
+	userId := userIdCtx.(tpportal.User).ID
 	flIdParam := c.Param("flId")
 	flId, err := strconv.ParseInt(flIdParam, 10, 64)
 	if err != nil {

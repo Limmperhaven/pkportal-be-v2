@@ -8,6 +8,7 @@ import (
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/mapper"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/restmodels"
+	"github.com/Limmperhaven/pkportal-be-v2/internal/models/tpportal"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -92,12 +93,12 @@ func (s *ControllerStorage) SignUpUserToTestDate(c *gin.Context) {
 }
 
 func (s *ControllerStorage) SignUpMeToTestDate(c *gin.Context) {
-	userIdCtx, ok := c.Get(body.UserId)
+	userIdCtx, ok := c.Get(body.UserCtx)
 	if !ok {
 		response.NewErrorResponse(c, errs.NewInternal(errors.New("в контексте отсутствует userId")))
 		return
 	}
-	userId := userIdCtx.(int64)
+	userId := userIdCtx.(tpportal.User).ID
 	tdIdParam := c.Param("tdId")
 	tdId, err := strconv.ParseInt(tdIdParam, 10, 64)
 	if err != nil {
@@ -119,4 +120,25 @@ func (s *ControllerStorage) ListCommonLocations(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, mapper.NewIdNameArrayToRest(cls))
+}
+
+func (s *ControllerStorage) SetTestDateAttended(c *gin.Context) {
+	userIdParam := c.Param("userId")
+	userId, err := strconv.ParseInt(userIdParam, 10, 64)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(fmt.Errorf("невалидный id пользователя: %s", userIdParam)))
+		return
+	}
+	tdIdParam := c.Param("tdId")
+	tdId, err := strconv.ParseInt(tdIdParam, 10, 64)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(fmt.Errorf("невалидный id даты тестирования: %s", tdIdParam)))
+		return
+	}
+	err = s.uc.SetTestDateAttended(c, userId, tdId)
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.Status(http.StatusOK)
 }

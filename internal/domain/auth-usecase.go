@@ -13,6 +13,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )
@@ -40,14 +41,43 @@ func (u *Usecase) SignUp(ctx context.Context, req *tpportal.SignUpRequest) error
 		IsActivated:         false,
 		ActivationToken:     uuid.New().String(),
 		ChangePasswordToken: uuid.New().String(),
-		StatusID:            body.Registered.Int64(),
 	}
+
+	var otherEducationYear int16
+	if user.EducationYear == int16(10) {
+		otherEducationYear = int16(9)
+	} else {
+		otherEducationYear = int16(10)
+	}
+
 	cfg := config.Get().Server
 	activationLink := cfg.Scheme + "://" + cfg.Domain + "/auth/activate/" + user.ActivationToken
 
-	err = user.Insert(ctx, u.st.DBSX(), boil.Infer())
+	err = u.st.QueryTx(ctx, func(tx *sqlx.Tx) error {
+		err = user.Insert(ctx, tx, boil.Infer())
+		if err != nil {
+			return errs.NewInternal(err)
+		}
+		uss := tpportal.UserStatusSlice{
+			&tpportal.UserStatus{
+				UserID:        user.ID,
+				StatusID:      body.Registered.Int64(),
+				EducationYear: user.EducationYear,
+			},
+			&tpportal.UserStatus{
+				UserID:        user.ID,
+				StatusID:      body.Registered.Int64(),
+				EducationYear: otherEducationYear,
+			},
+		}
+		err = user.AddUserStatuses(ctx, tx, true, uss...)
+		if err != nil {
+			return errs.NewInternal(err)
+		}
+		return nil
+	})
 	if err != nil {
-		return errs.NewInternal(err)
+		return err
 	}
 
 	err = u.mail.SendTextEmail(body.CreateAccountSubject, body.CreateAccountMessage+activationLink, []string{req.Email})
@@ -61,6 +91,12 @@ func (u *Usecase) SignUp(ctx context.Context, req *tpportal.SignUpRequest) error
 func (u *Usecase) SignIn(ctx context.Context, req *tpportal.SignInRequest) (tpportal.SignInResponse, error) {
 	user, err := tpportal.Users(
 		tpportal.UserWhere.Email.EQ(req.Email),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserStatuses,
+				tpportal.UserStatusRels.Status,
+			),
+		),
 	).One(ctx, u.st.DBSX())
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -86,9 +122,30 @@ func (u *Usecase) SignIn(ctx context.Context, req *tpportal.SignInRequest) (tppo
 		return tpportal.SignInResponse{}, errs.NewInternal(err)
 	}
 
+	status := tpportal.IdName{}
+	if len(user.R.UserStatuses) != 0 {
+		for _, us := range user.R.UserStatuses {
+			if us.EducationYear == user.EducationYear {
+				status.Id = us.R.Status.ID
+				status.Name = us.R.Status.Name
+			}
+		}
+	}
+
 	return tpportal.SignInResponse{
-		User:      *user,
-		AuthToken: signedToken,
+		Id:                user.ID,
+		Email:             user.Email,
+		Fio:               user.Fio,
+		DateOfBirth:       u.formatDate(user.DateOfBirth),
+		Gender:            user.Gender.String(),
+		PhoneNumber:       user.PhoneNumber,
+		ParentPhoneNumber: user.ParentPhoneNumber,
+		CurrentSchool:     user.CurrentSchool.String,
+		EducationYear:     int64(user.EducationYear),
+		IsActivated:       user.IsActivated,
+		Role:              user.Role.String(),
+		Status:            status,
+		AuthToken:         signedToken,
 	}, nil
 }
 

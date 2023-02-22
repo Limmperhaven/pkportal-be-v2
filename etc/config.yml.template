@@ -4,6 +4,7 @@ app:
 
 server:
   scheme: http
+  host: localhost
   port: 5000
   domain: localhost
 
@@ -18,6 +19,14 @@ psql:
   blacklist: schema_migrations
   max_idle_conns: 50
   max_open_conns: 50
+
+s3:
+  host: localhost:9090
+  access_key: eG515IVOh0s6ruKR
+  secret_key: WjNPEexwxCvyqjxTyaVwrGkf58I4Nk6I
+  bucket_name: pkportal-screenshots
+  server_location: us-west-2
+  use_ssl: false
 
 smtp:
   address: "user1@pkportaldev.space"
