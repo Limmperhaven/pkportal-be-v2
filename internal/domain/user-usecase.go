@@ -409,52 +409,270 @@ func (u *Usecase) DownloadScreenshot(ctx context.Context, userId int64) (tpporta
 	}, nil
 }
 
-func (u *Usecase) ListUsers(ctx context.Context, req tpportal.ListUsersRequest) ([]tpportal.GetUserResponse, error) {
-	//queryMods := make([]qm.QueryMod, 0)
-	//
-	//if len(req.EducationYears) != 0 {
-	//	educationYears := make([]interface{}, len(req.EducationYears))
-	//	for i, ey := range req.EducationYears {
-	//		educationYears[i] = ey
-	//	}
-	//	//queryMods = append(queryMods, qm.WhereIn(tpportal.TableNames.Users+"."+tpportal.UserColumns.EducationYear+" IN ?", educationYears...))
-	//}
-	//if len(req.ProfileIds) != 0 {
-	//	profileIds := make([]interface{}, len(req.ProfileIds))
-	//	for i, pi := range req.ProfileIds {
-	//		profileIds[i] = pi
-	//	}
-	//	expr := qm.Expr(
-	//		qm.WhereIn(tpportal.TableNames.UserProfiles+"."+tpportal.UserProfileColumns.FirstProfileID+" IN ?", profileIds...),
-	//		qm.Or2(qm.WhereIn(tpportal.TableNames.UserProfiles+"."+tpportal.UserProfileColumns.SecondProfileID+" IN ?", profileIds...)),
-	//	)
-	//	queryMods = append(queryMods, expr)
-	//}
-	//if len(req.StatusIds) != 0 {
-	//
-	//}
-
-	//users, err := tpportal.Users().All(ctx, u.st.DBSX())
-
-	educationYears := make([]interface{}, len(req.EducationYears))
-	for i, ey := range req.EducationYears {
-		educationYears[i] = ey
+func (u *Usecase) ListUsers(ctx context.Context, req tpportal.UserFilter) ([]tpportal.GetUserResponse, error) {
+	userIds, err := u.filterUsers(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	queryUserIds := make([]interface{}, len(userIds))
+	for i, uid := range userIds {
+		queryUserIds[i] = uid
 	}
 
 	users, err := tpportal.Users(
-		qm.WhereIn(tpportal.TableNames.Users+"."+tpportal.UserColumns.EducationYear+" IN ?", educationYears...),
-		qm.InnerJoin(fmt.Sprintf("%s ON %s = %s AND %s = %s",
-			tpportal.TableNames.UserProfiles,
-			tpportal.UserColumns.ID,
-			tpportal.UserProfileColumns.UserID,
-			tpportal.UserColumns.EducationYear,
-			tpportal.UserProfileColumns.UserEducationYear,
-		)),
+		qm.WhereIn(tpportal.UserColumns.ID+" IN ?", queryUserIds...),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserStatuses,
+				tpportal.UserStatusRels.Status,
+			),
+		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserProfiles,
+				tpportal.UserProfileRels.FirstProfile,
+			),
+		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserProfiles,
+				tpportal.UserProfileRels.SecondProfile,
+			),
+		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserProfileSubjects,
+				tpportal.UserProfileSubjectRels.FirstProfileSubject,
+			),
+		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserProfileSubjects,
+				tpportal.UserProfileSubjectRels.SecondProfileSubject,
+			),
+		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserForeignLanguages,
+				tpportal.UserForeignLanguageRels.ForeignLanguage,
+			),
+		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserTestDates,
+			),
+		),
 	).All(ctx, u.st.DBSX())
-
-	for _, user := range users {
-		fmt.Println(len(user.R.UserProfiles))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errs.NewNotFound(errors.New("ничего не найдено"))
+		}
+		return nil, errs.NewInternal(err)
 	}
 
-	return nil, err
+	res := make([]tpportal.GetUserResponse, len(users))
+	for i, user := range users {
+		status := tpportal.IdName{}
+		if len(user.R.UserStatuses) != 0 {
+			for _, us := range user.R.UserStatuses {
+				if us.EducationYear == user.EducationYear {
+					status.Id = us.R.Status.ID
+					status.Name = us.R.Status.Name
+					break
+				}
+			}
+		}
+
+		firstProfile := tpportal.IdName{}
+		secondProfile := tpportal.IdName{}
+		if len(user.R.UserProfiles) != 0 {
+			for _, up := range user.R.UserProfiles {
+				if up.UserEducationYear == user.EducationYear {
+					if up.R.FirstProfile != nil {
+						firstProfile.Id = up.R.FirstProfile.ID
+						firstProfile.Name = up.R.FirstProfile.Name
+					}
+					if up.R.SecondProfile != nil {
+						secondProfile.Id = up.R.SecondProfile.ID
+						secondProfile.Name = up.R.SecondProfile.Name
+					}
+					break
+				}
+			}
+		}
+
+		firstProfileSubject := tpportal.IdName{}
+		secondProfileSubject := tpportal.IdName{}
+		if len(user.R.UserProfileSubjects) != 0 {
+			for _, ups := range user.R.UserProfileSubjects {
+				if ups.UserEducationYear == user.EducationYear {
+					if ups.R.FirstProfileSubject != nil {
+						firstProfileSubject.Id = ups.R.FirstProfileSubject.ID
+						firstProfileSubject.Name = ups.R.FirstProfileSubject.Name
+					}
+					if ups.R.SecondProfileSubject != nil {
+						secondProfileSubject.Id = ups.R.SecondProfileSubject.ID
+						secondProfileSubject.Name = ups.R.SecondProfileSubject.Name
+					}
+					break
+				}
+			}
+		}
+		foreignLanguage := tpportal.IdName{}
+		if len(user.R.UserForeignLanguages) != 0 {
+			for _, fl := range user.R.UserForeignLanguages {
+				if fl.UserEducationYear == user.EducationYear {
+					foreignLanguage.Id = fl.R.ForeignLanguage.ID
+					foreignLanguage.Name = fl.R.ForeignLanguage.Name
+					break
+				}
+			}
+		}
+
+		testDate := tpportal.GetUserResponseTestDate{}
+		if len(user.R.UserTestDates) != 0 {
+			for _, utd := range user.R.UserTestDates {
+				if utd.EducationYear == user.EducationYear {
+					testDate.TestDateId = utd.TestDateID
+					testDate.IsAttended = utd.IsAttended
+				}
+			}
+		}
+
+		item := tpportal.GetUserResponse{
+			Id:                   user.ID,
+			Role:                 user.Role.String(),
+			Fio:                  user.Fio,
+			DateOfBirth:          u.formatDate(user.DateOfBirth),
+			Gender:               user.Gender.String(),
+			Email:                user.Email,
+			PhoneNumber:          user.PhoneNumber,
+			ParentPhoneNumber:    user.ParentPhoneNumber,
+			CurrentSchool:        user.CurrentSchool.String,
+			EducationYear:        int64(user.EducationYear),
+			Status:               status,
+			FirstProfile:         firstProfile,
+			SecondProfile:        secondProfile,
+			FirstProfileSubject:  firstProfileSubject,
+			SecondProfileSubject: secondProfileSubject,
+			ForeignLanguage:      foreignLanguage,
+			TestDate:             testDate,
+			IsActivated:          user.IsActivated,
+		}
+
+		res[i] = item
+	}
+
+	return res, nil
+}
+
+func (u *Usecase) filterUsers(ctx context.Context, req tpportal.UserFilter) ([]int64, error) {
+	userIds := make([]int64, 0)
+	if len(req.EducationYears) != 0 {
+		educationYears := make([]interface{}, len(req.EducationYears))
+		for i, ey := range req.EducationYears {
+			educationYears[i] = ey
+		}
+		users, err := tpportal.Users(
+			qm.WhereIn(tpportal.UserColumns.EducationYear+" IN ?", educationYears...),
+		).All(ctx, u.st.DBSX())
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil, errs.NewNotFound(errors.New("ничего не найдено"))
+			}
+			return nil, errs.NewInternal(err)
+		}
+		for _, user := range users {
+			userIds = append(userIds, user.ID)
+		}
+	}
+	if len(req.ProfileIds) != 0 {
+		queryUserIds := make([]interface{}, len(userIds))
+		queryProfileIds := make([]interface{}, len(req.ProfileIds))
+		for i, ui := range userIds {
+			queryUserIds[i] = ui
+		}
+		for i, pi := range req.ProfileIds {
+			queryProfileIds[i] = pi
+		}
+		ups, err := tpportal.UserProfiles(
+			qm.WhereIn(tpportal.UserProfileColumns.UserID+" IN ?", queryUserIds...),
+			qm.Expr(
+				qm.WhereIn(tpportal.UserProfileColumns.FirstProfileID+" IN ?", queryProfileIds...),
+				qm.Or2(qm.WhereIn(tpportal.UserProfileColumns.SecondProfileID+" IN ?", queryProfileIds...)),
+			),
+			qm.Load(tpportal.UserProfileRels.User),
+		).All(ctx, u.st.DBSX())
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil, errs.NewNotFound(errors.New("ничего не найдено"))
+			}
+			return nil, errs.NewInternal(err)
+		}
+		newUserIds := make([]int64, 0, len(ups))
+		for _, up := range ups {
+			if up.R.User.EducationYear == up.UserEducationYear {
+				newUserIds = append(newUserIds, up.UserID)
+			}
+
+		}
+		userIds = newUserIds
+	}
+	if len(req.TestDateIds) != 0 {
+		queryUserIds := make([]interface{}, len(userIds))
+		for i, ui := range userIds {
+			queryUserIds[i] = ui
+		}
+		queryTestDateIds := make([]interface{}, len(req.TestDateIds))
+		for i, tdId := range req.TestDateIds {
+			queryTestDateIds[i] = tdId
+		}
+		utds, err := tpportal.UserTestDates(
+			qm.WhereIn(tpportal.UserTestDateColumns.UserID+" IN ?", queryUserIds...),
+			qm.WhereIn(tpportal.UserTestDateColumns.TestDateID+" IN ?", queryTestDateIds...),
+			qm.Load(tpportal.UserTestDateRels.User),
+		).All(ctx, u.st.DBSX())
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil, errs.NewNotFound(errors.New("ничего не найдено"))
+			}
+			return nil, errs.NewInternal(err)
+		}
+		newUserIds := make([]int64, 0, len(utds))
+		for _, utd := range utds {
+			if utd.R.User.EducationYear == utd.EducationYear {
+				newUserIds = append(newUserIds, utd.UserID)
+			}
+		}
+		userIds = newUserIds
+	}
+	if len(req.StatusIds) != 0 {
+		queryUserIds := make([]interface{}, len(userIds))
+		for i, ui := range userIds {
+			queryUserIds[i] = ui
+		}
+		queryStatusIds := make([]interface{}, len(req.StatusIds))
+		for i, sid := range req.StatusIds {
+			queryStatusIds[i] = sid
+		}
+		uss, err := tpportal.UserStatuses(
+			qm.WhereIn(tpportal.UserStatusColumns.UserID+" IN ?", queryUserIds...),
+			qm.WhereIn(tpportal.UserStatusColumns.StatusID+" IN ?", queryStatusIds...),
+			qm.Load(tpportal.UserStatusRels.User),
+		).All(ctx, u.st.DBSX())
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil, errs.NewNotFound(errors.New("ничего не найдено"))
+			}
+			return nil, errs.NewInternal(err)
+		}
+		newUserIds := make([]int64, 0, len(uss))
+		for _, us := range uss {
+			if us.R.User.EducationYear == us.EducationYear {
+				newUserIds = append(newUserIds, us.UserID)
+			}
+		}
+		userIds = newUserIds
+	}
+	return userIds, nil
 }

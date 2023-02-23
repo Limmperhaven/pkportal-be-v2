@@ -116,7 +116,7 @@ type DownloadScreenshotResponse struct {
 	ContentType string
 }
 
-type ListUsersRequest struct {
+type UserFilter struct {
 	ProfileIds     []int64
 	EducationYears []int64
 	StatusIds      []int64

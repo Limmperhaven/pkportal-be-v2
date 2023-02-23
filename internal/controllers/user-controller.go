@@ -47,7 +47,7 @@ func (s *ControllerStorage) GetUser(c *gin.Context) {
 }
 
 func (s *ControllerStorage) ListUsers(c *gin.Context) {
-	var req restmodels.ListUsersRequest
+	var req restmodels.UserFilter
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		response.NewErrorResponse(c, errs.NewBadRequest(err))

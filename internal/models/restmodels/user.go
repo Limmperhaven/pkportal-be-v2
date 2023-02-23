@@ -42,7 +42,7 @@ type UpdateUserRequest struct {
 	EducationYear     int64  `json:"education_year"`
 }
 
-type ListUsersRequest struct {
+type UserFilter struct {
 	ProfileIds     []int64 `json:"profile_ids"`
 	EducationYears []int64 `json:"education_years"`
 	StatusIds      []int64 `json:"status_ids"`

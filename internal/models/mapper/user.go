@@ -71,8 +71,8 @@ func NewUploadScreenshotRequestFromRest(fileName string, fileSize int64, fileCon
 	}
 }
 
-func NewListUsersRequestFromRest(in *restmodels.ListUsersRequest) *tpportal.ListUsersRequest {
-	return &tpportal.ListUsersRequest{
+func NewListUsersRequestFromRest(in *restmodels.UserFilter) *tpportal.UserFilter {
+	return &tpportal.UserFilter{
 		ProfileIds:     in.ProfileIds,
 		EducationYears: in.EducationYears,
 		StatusIds:      in.StatusIds,
