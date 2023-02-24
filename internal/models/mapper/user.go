@@ -10,6 +10,7 @@ func NewGetUserResponseToRest(in *tpportal.GetUserResponse) *restmodels.GetUserR
 		Id:                   in.Id,
 		Role:                 in.Role,
 		Fio:                  in.Fio,
+		ShortFio:             in.ShortFIO,
 		DateOfBirth:          in.DateOfBirth,
 		Gender:               in.Gender,
 		Email:                in.Email,

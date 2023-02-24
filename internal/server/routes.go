@@ -11,6 +11,7 @@ import (
 func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlewares.MiddlewareStorage) {
 	authorized := router.Group("/")
 	authorized.Use(m.AuthMiddleware)
+	//authorized.Use(m.CheckActivationMiddleware)
 	admin := authorized.Group("/")
 	admin.Use(m.CheckAdminRoleMiddleware)
 

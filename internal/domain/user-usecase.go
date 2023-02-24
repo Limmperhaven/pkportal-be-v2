@@ -14,6 +14,7 @@ import (
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"strings"
 )
 
 func (u *Usecase) CreateUser(ctx context.Context, req *tpportal.CreateUserRequest) error {
@@ -198,10 +199,24 @@ func (u *Usecase) GetUser(ctx context.Context, userId int64) (tpportal.GetUserRe
 		}
 	}
 
+	var shortFio string
+	if user.Fio != "" {
+		fioParts := strings.Split(user.Fio, " ")
+		switch len(fioParts) {
+		case 3:
+			shortFio = fioParts[0] + " " + string([]rune(fioParts[1])[0]) + "." + string([]rune(fioParts[2])[0]) + "."
+		case 2:
+			shortFio = fioParts[0] + " " + string([]rune(fioParts[1])[0]) + "."
+		default:
+			shortFio = user.Fio
+		}
+	}
+
 	res := tpportal.GetUserResponse{
 		Id:                   user.ID,
 		Role:                 user.Role.String(),
 		Fio:                  user.Fio,
+		ShortFIO:             shortFio,
 		DateOfBirth:          u.formatDate(user.DateOfBirth),
 		Gender:               user.Gender.String(),
 		Email:                user.Email,
@@ -568,6 +583,17 @@ func (u *Usecase) ListUsers(ctx context.Context, req tpportal.UserFilter) ([]tpp
 
 func (u *Usecase) filterUsers(ctx context.Context, req tpportal.UserFilter) ([]int64, error) {
 	userIds := make([]int64, 0)
+	usrs, err := tpportal.Users().All(ctx, u.st.DBSX())
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errs.NewNotFound(errors.New("ничего не найдено"))
+		}
+		return nil, errs.NewInternal(err)
+	}
+	for _, user := range usrs {
+		userIds = append(userIds, user.ID)
+	}
+
 	if len(req.EducationYears) != 0 {
 		educationYears := make([]interface{}, len(req.EducationYears))
 		for i, ey := range req.EducationYears {

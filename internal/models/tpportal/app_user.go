@@ -59,6 +59,7 @@ type GetUserResponse struct {
 	Id                   int64
 	Role                 string
 	Fio                  string
+	ShortFIO             string
 	DateOfBirth          string
 	Gender               string
 	Email                string

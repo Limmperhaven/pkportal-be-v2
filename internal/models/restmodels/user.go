@@ -4,6 +4,7 @@ type GetUserResponse struct {
 	Id                   int64                   `json:"id"`
 	Role                 string                  `json:"role"`
 	Fio                  string                  `json:"fio"`
+	ShortFio             string                  `json:"short_fio"`
 	DateOfBirth          string                  `json:"date_of_birth"`
 	Gender               string                  `json:"gender"`
 	Email                string                  `json:"email"`
