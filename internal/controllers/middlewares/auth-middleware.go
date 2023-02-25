@@ -19,7 +19,7 @@ func (m *MiddlewareStorage) AuthMiddleware(c *gin.Context) {
 
 	headerParts := strings.Split(tokenString, " ")
 	if len(headerParts) != 2 || headerParts[0] != "Bearer" {
-		response.NewErrorResponse(c, errs.NewUnauthorized(errors.New("invalid cookie content")))
+		response.NewErrorResponse(c, errs.NewUnauthorized(errors.New("invalid header content")))
 		return
 	}
 

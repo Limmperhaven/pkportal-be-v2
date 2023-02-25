@@ -35,7 +35,7 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		adminTd.GET("/list", c.ListTestDates)
 		authTd.GET("/listAvailable", c.ListAvailableTestDates)
 		adminTd.POST("/signUpUser/:userId/:tdId", c.SignUpUserToTestDate)
-		adminTd.POST("/signUpMe/:tdId", c.SignUpMeToTestDate)
+		authTd.POST("/signUpMe/:tdId", c.SignUpMeToTestDate)
 		adminTd.GET("/listCommonLocations", c.ListCommonLocations)
 		adminTd.POST("/setAttended/:userId/:tdId", c.SetTestDateAttended)
 	}
