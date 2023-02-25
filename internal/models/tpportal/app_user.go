@@ -78,8 +78,14 @@ type GetUserResponse struct {
 }
 
 type GetUserResponseTestDate struct {
-	TestDateId int64
-	IsAttended bool
+	Id            int64
+	Date          string
+	Time          string
+	Location      string
+	MaxPersons    int64
+	EducationYear int64
+	PubStatus     string
+	IsAttended    bool
 }
 
 type ListStatusesRequest struct {

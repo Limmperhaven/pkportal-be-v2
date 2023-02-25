@@ -122,6 +122,7 @@ func (u *Usecase) GetUser(ctx context.Context, userId int64) (tpportal.GetUserRe
 		qm.Load(
 			qm.Rels(
 				tpportal.UserRels.UserTestDates,
+				tpportal.UserTestDateRels.TestDate,
 			),
 		),
 	).One(ctx, u.st.DBSX())
@@ -193,7 +194,14 @@ func (u *Usecase) GetUser(ctx context.Context, userId int64) (tpportal.GetUserRe
 	if len(user.R.UserTestDates) != 0 {
 		for _, utd := range user.R.UserTestDates {
 			if utd.EducationYear == user.EducationYear {
-				testDate.TestDateId = utd.TestDateID
+				testDate.Id = utd.TestDateID
+				tdDate, tdTime := u.formatDateTime(utd.R.TestDate.DateTime)
+				testDate.Date = tdDate
+				testDate.Time = tdTime
+				testDate.Location = utd.R.TestDate.Location
+				testDate.MaxPersons = int64(utd.R.TestDate.MaxPersons)
+				testDate.EducationYear = int64(utd.R.TestDate.EducationYear)
+				testDate.PubStatus = utd.R.TestDate.PubStatus.String()
 				testDate.IsAttended = utd.IsAttended
 			}
 		}
@@ -475,6 +483,7 @@ func (u *Usecase) ListUsers(ctx context.Context, req tpportal.UserFilter) ([]tpp
 		qm.Load(
 			qm.Rels(
 				tpportal.UserRels.UserTestDates,
+				tpportal.UserTestDateRels.TestDate,
 			),
 		),
 	).All(ctx, u.st.DBSX())
@@ -548,7 +557,14 @@ func (u *Usecase) ListUsers(ctx context.Context, req tpportal.UserFilter) ([]tpp
 		if len(user.R.UserTestDates) != 0 {
 			for _, utd := range user.R.UserTestDates {
 				if utd.EducationYear == user.EducationYear {
-					testDate.TestDateId = utd.TestDateID
+					testDate.Id = utd.TestDateID
+					tdDate, tdTime := u.formatDateTime(utd.R.TestDate.DateTime)
+					testDate.Date = tdDate
+					testDate.Time = tdTime
+					testDate.Location = utd.R.TestDate.Location
+					testDate.MaxPersons = int64(utd.R.TestDate.MaxPersons)
+					testDate.EducationYear = int64(utd.R.TestDate.EducationYear)
+					testDate.PubStatus = utd.R.TestDate.PubStatus.String()
 					testDate.IsAttended = utd.IsAttended
 				}
 			}

@@ -23,8 +23,14 @@ type GetUserResponse struct {
 }
 
 type GetUserResponseTestDate struct {
-	TestDateId int64 `json:"test_date_id"`
-	IsAttended bool  `json:"is_attended"`
+	Id            int64  `json:"id"`
+	Date          string `json:"date"`
+	Time          string `json:"time"`
+	Location      string `json:"location"`
+	MaxPersons    int64  `json:"max_persons"`
+	EducationYear int64  `json:"education_year"`
+	PubStatus     string `json:"pub_status"`
+	IsAttended    bool   `json:"is_attended"`
 }
 
 type ListStatusesRequest struct {

@@ -39,8 +39,14 @@ func NewGetUserResponseArrayToRest(in []tpportal.GetUserResponse) []restmodels.G
 
 func NewGetUserResponseTestDateToRest(in *tpportal.GetUserResponseTestDate) *restmodels.GetUserResponseTestDate {
 	return &restmodels.GetUserResponseTestDate{
-		TestDateId: in.TestDateId,
-		IsAttended: in.IsAttended,
+		Id:            in.Id,
+		Date:          in.Date,
+		Time:          in.Time,
+		Location:      in.Location,
+		MaxPersons:    in.MaxPersons,
+		EducationYear: in.EducationYear,
+		PubStatus:     in.PubStatus,
+		IsAttended:    in.IsAttended,
 	}
 }
 
