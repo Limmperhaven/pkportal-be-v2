@@ -180,7 +180,7 @@ func (u *Usecase) RecoverPassword(ctx context.Context, email string) error {
 	}
 
 	cfg := config.Get().Server
-	url := cfg.Domain + "/someUrl/" + user.ChangePasswordToken
+	url := cfg.Domain + "/setPassword/" + user.ChangePasswordToken
 
 	err = u.mail.SendTextEmail(body.RecoverPasswordSubject, body.RecoverPasswordMessage+url, []string{user.Email})
 	if err != nil {

@@ -444,6 +444,7 @@ func (u *Usecase) ListUsers(ctx context.Context, req tpportal.UserFilter) ([]tpp
 
 	users, err := tpportal.Users(
 		qm.WhereIn(tpportal.UserColumns.ID+" IN ?", queryUserIds...),
+		qm.OrderBy(tpportal.UserColumns.ID),
 		qm.Load(
 			qm.Rels(
 				tpportal.UserRels.UserStatuses,
