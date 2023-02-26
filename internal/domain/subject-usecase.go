@@ -32,7 +32,10 @@ func (u *Usecase) ListSubjects(ctx context.Context, profileId int64) ([]tpportal
 		return res, nil
 	}
 
-	profile, err := tpportal.Profiles(qm.Load(tpportal.ProfileRels.Subjects)).One(ctx, u.st.DBSX())
+	profile, err := tpportal.Profiles(
+		tpportal.ProfileWhere.ID.EQ(profileId),
+		qm.Load(tpportal.ProfileRels.Subjects),
+	).One(ctx, u.st.DBSX())
 	tpportal.Subjects()
 	if err != nil {
 		if err == sql.ErrNoRows {
