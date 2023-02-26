@@ -68,7 +68,9 @@ func (u *Usecase) ListTestDates(ctx context.Context, availableOnly bool) ([]tppo
 		if err != nil && err != sql.ErrNoRows {
 			return nil, errs.NewInternal(err)
 		}
-		queryMods = append(queryMods, tpportal.TestDateWhere.ID.NEQ(utd.TestDateID))
+		if utd != nil {
+			queryMods = append(queryMods, tpportal.TestDateWhere.ID.NEQ(utd.TestDateID))
+		}
 	}
 
 	tds, err := tpportal.TestDates(queryMods...).All(ctx, u.st.DBSX())
