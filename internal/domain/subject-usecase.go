@@ -124,7 +124,7 @@ func (u *Usecase) SetSubjectsToUser(ctx context.Context, req tpportal.SetSubject
 	if req.SecondSubjectId != 0 {
 		valid := false
 		for _, subj := range secondUserProfile.R.Subjects {
-			if subj.ID == req.FirstSubjectId {
+			if subj.ID == req.SecondSubjectId {
 				valid = true
 				break
 			}
