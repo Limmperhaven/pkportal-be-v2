@@ -71,6 +71,11 @@ CREATE TABLE IF NOT EXISTS public.user_statuses
     PRIMARY KEY (user_id, education_year)
 );
 
+INSERT INTO public.user_statuses
+    (user_id, status_id, education_year)
+VALUES (1, 1, 9),
+       (1, 1, 10);
+
 CREATE TABLE IF NOT EXISTS public.user_screenshots
 (
     user_id        bigint   NOT NULL REFERENCES users (id),
@@ -79,10 +84,6 @@ CREATE TABLE IF NOT EXISTS public.user_screenshots
     file_name      text     NOT NULL,
     PRIMARY KEY (user_id, education_year)
 );
-
-INSERT INTO public.user_statuses
-    (user_id, status_id, education_year)
-VALUES (1, 1, 10);
 
 CREATE TABLE IF NOT EXISTS public.test_dates
 (
