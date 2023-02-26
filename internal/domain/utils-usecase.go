@@ -76,7 +76,13 @@ func (u *Usecase) parseDateTime(dateString string, timeString string) (dateTime 
 
 func (u *Usecase) formatDateTime(in time.Time) (dateString, timeString string) {
 	dateString = in.Format("02.01.2006")
-	timeString = strconv.Itoa(in.Hour()) + ":" + strconv.Itoa(in.Minute())
+	var minuteString string
+	if in.Minute() < 10 {
+		minuteString = "0" + strconv.Itoa(in.Minute())
+	} else {
+		minuteString = strconv.Itoa(in.Minute())
+	}
+	timeString = strconv.Itoa(in.Hour()) + ":" + minuteString
 	return dateString, timeString
 }
 

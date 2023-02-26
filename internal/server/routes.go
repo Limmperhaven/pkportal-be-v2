@@ -50,7 +50,7 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		adminUser.POST("/setStatus/:userId/:statusId", c.SetUserStatus)
 		adminUser.GET("/downloadScreenshot/:userId", c.DownloadScreenshot)
 		authUser.GET("/me", c.GetMe)
-		authUser.GET("/listStatuses", c.ListStatuses)
+		authUser.POST("/listStatuses", c.ListStatuses)
 		authUser.POST("/uploadScreenshot", c.UploadScreenshot)
 	}
 

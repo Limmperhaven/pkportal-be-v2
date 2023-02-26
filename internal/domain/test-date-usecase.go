@@ -54,6 +54,7 @@ func (u *Usecase) ListTestDates(ctx context.Context, availableOnly bool) ([]tppo
 	}
 
 	queryMods := make([]qm.QueryMod, 0, 3)
+	queryMods = append(queryMods, qm.OrderBy(tpportal.TestDateColumns.ID))
 	queryMods = append(queryMods, qm.Load(
 		qm.Rels(tpportal.TestDateRels.UserTestDates),
 	))
