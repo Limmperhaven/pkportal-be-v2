@@ -238,3 +238,12 @@ func (s *ControllerStorage) SetUserRole(c *gin.Context) {
 	}
 	c.Status(http.StatusOK)
 }
+
+func (s *ControllerStorage) ResendActivationEmail(c *gin.Context) {
+	err := s.uc.ResendActivationEmail(c)
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.Status(http.StatusOK)
+}

@@ -1,8 +1,6 @@
 package controllers
 
 import (
-	"github.com/Limmperhaven/pkportal-be-v2/internal/body"
-	"github.com/Limmperhaven/pkportal-be-v2/internal/config"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/controllers/response"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/mapper"
@@ -76,16 +74,4 @@ func (s *ControllerStorage) ConfirmRecover(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusOK)
-}
-
-func (s *ControllerStorage) Logout(c *gin.Context) {
-	cfg := config.Get().Server
-
-	c.SetCookie(body.AuthToken,
-		"",
-		-1,
-		"/",
-		cfg.Domain,
-		cfg.Scheme == "https",
-		true)
 }

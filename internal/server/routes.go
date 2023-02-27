@@ -9,9 +9,12 @@ import (
 )
 
 func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlewares.MiddlewareStorage) {
-	authorized := router.Group("/")
+	activated := router.Group("/")
+	authorizedNotActivated := router.Group("/")
+	authorizedNotActivated.Use(m.AuthMiddleware)
+	//activated.Use(m.CheckActivationMiddleware)
+	authorized := activated.Group("/")
 	authorized.Use(m.AuthMiddleware)
-	//authorized.Use(m.CheckActivationMiddleware)
 	admin := authorized.Group("/")
 	admin.Use(m.CheckAdminRoleMiddleware)
 
@@ -21,7 +24,6 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		auth.POST("/sign-in", c.SignIn)
 		auth.POST("/recover/:email", c.RecoverPassword)
 		auth.GET("/activate/:token", c.ActivateAccount)
-		auth.POST("/logout", c.Logout)
 		auth.POST("/confirmRecover/:token", c.ConfirmRecover)
 	}
 
@@ -44,6 +46,7 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 
 	authUser := authorized.Group("/user")
 	adminUser := admin.Group("/user")
+	aNAUser := authorizedNotActivated.Group("/user")
 	{
 		adminUser.POST("/create", c.CreateUser)
 		adminUser.GET("/byId/:id", c.GetUser)
@@ -56,6 +59,7 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		authUser.POST("/listStatuses", c.ListStatuses)
 		authUser.POST("/uploadScreenshot", c.UploadScreenshot)
 		authUser.GET("/downloadMyScreenshot", c.DownloadMyScreenshot)
+		aNAUser.POST("/resendActivation/:id", c.ResendActivationEmail)
 	}
 
 	authProfile := authorized.Group("/profiles")

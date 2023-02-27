@@ -820,3 +820,18 @@ func (u *Usecase) SetUserRole(ctx context.Context, userId int64, role string) er
 
 	return nil
 }
+
+func (u *Usecase) ResendActivationEmail(ctx context.Context) error {
+	user, err := u.extractUserFromCtx(ctx)
+	if err != nil {
+		return err
+	}
+	fmt.Println(user.Email)
+	cfg := config.Get().Server
+	activationLink := cfg.Scheme + "://" + cfg.Domain + "/auth/activate/" + user.ActivationToken
+	err = u.mail.SendTextEmail(body.CreateAccountSubject, body.CreateAccountMessage+activationLink, []string{user.Email})
+	if err != nil {
+		return errs.NewInternal(err)
+	}
+	return nil
+}
