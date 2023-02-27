@@ -222,3 +222,19 @@ func (s *ControllerStorage) ExportToXlsx(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, *mapper.NewDownloadFileResponseToRest(&res))
 }
+
+func (s *ControllerStorage) SetUserRole(c *gin.Context) {
+	userIdParam := c.Param("userId")
+	userId, err := strconv.ParseInt(userIdParam, 10, 64)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(fmt.Errorf("невалидный id: %s", userIdParam)))
+		return
+	}
+	role := c.Param("role")
+	err = s.uc.SetUserRole(c, userId, role)
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.Status(http.StatusOK)
+}

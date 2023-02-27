@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/tpportal"
+	"github.com/jmoiron/sqlx"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -45,7 +46,10 @@ func (u *Usecase) ListProfiles(ctx context.Context) ([]tpportal.ListProfilesResp
 }
 
 func (u *Usecase) SetProfilesToUser(ctx context.Context, req tpportal.SetProfilesToUserRequest, userId int64, dateCheck bool) error {
-	user, err := tpportal.FindUser(ctx, u.st.DBSX(), userId)
+	user, err := tpportal.Users(
+		tpportal.UserWhere.ID.EQ(userId),
+		qm.Load(tpportal.UserRels.UserProfileSubjects),
+	).One(ctx, u.st.DBSX())
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return errs.NewNotFound(fmt.Errorf("пользователь с id %d не найден", userId))
@@ -68,22 +72,54 @@ func (u *Usecase) SetProfilesToUser(ctx context.Context, req tpportal.SetProfile
 			}
 		}
 	}
+	if req.FirstProfileId == 0 && req.SecondProfileId != 0 {
+		return errs.NewBadRequest(errors.New("невозможно установить второй профиль, не установив первый"))
+	}
+
 	up := tpportal.UserProfile{
 		UserID:            user.ID,
 		UserEducationYear: user.EducationYear,
 	}
-	if req.FirstProfileId != 0 {
+
+	if req.FirstProfileId == 0 {
+		up.FirstProfileID = null.Int64{Valid: false}
+	} else {
 		up.FirstProfileID = null.Int64From(req.FirstProfileId)
 	}
-	if req.SecondProfileId != 0 {
+
+	if req.SecondProfileId == 0 {
+		up.SecondProfileID = null.Int64{Valid: false}
+	} else {
 		up.SecondProfileID = null.Int64From(req.SecondProfileId)
 	}
-	err = up.Upsert(ctx, u.st.DBSX(), true,
-		[]string{tpportal.UserProfileColumns.UserID, tpportal.UserProfileColumns.UserEducationYear},
-		boil.Whitelist(tpportal.UserProfileColumns.FirstProfileID, tpportal.UserProfileColumns.SecondProfileID),
-		boil.Infer())
-	if err != nil {
-		return errs.NewInternal(err)
+
+	var userSubjects *tpportal.UserProfileSubject
+	for _, us := range user.R.UserProfileSubjects {
+		if us.UserEducationYear == user.EducationYear {
+			userSubjects = us
+			break
+		}
 	}
+
+	err = u.st.QueryTx(ctx, func(tx *sqlx.Tx) error {
+		if userSubjects != nil {
+			_, err = userSubjects.Delete(ctx, tx)
+			if err != nil {
+				return errs.NewInternal(err)
+			}
+		}
+		err = up.Upsert(ctx, tx, true,
+			[]string{tpportal.UserProfileColumns.UserID, tpportal.UserProfileColumns.UserEducationYear},
+			boil.Whitelist(tpportal.UserProfileColumns.FirstProfileID, tpportal.UserProfileColumns.SecondProfileID),
+			boil.Infer())
+		if err != nil {
+			return errs.NewInternal(err)
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

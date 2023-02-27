@@ -51,6 +51,7 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		adminUser.POST("/list", c.ListUsers)
 		adminUser.POST("/setStatus/:userId/:statusId", c.SetUserStatus)
 		adminUser.GET("/downloadScreenshot/:userId", c.DownloadScreenshot)
+		adminUser.POST("/setUserRole/:userId/:role", c.SetUserRole)
 		authUser.GET("/me", c.GetMe)
 		authUser.POST("/listStatuses", c.ListStatuses)
 		authUser.POST("/uploadScreenshot", c.UploadScreenshot)

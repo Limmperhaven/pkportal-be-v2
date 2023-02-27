@@ -798,3 +798,25 @@ func (u *Usecase) filterUsers(ctx context.Context, req tpportal.UserFilter) ([]i
 	}
 	return userIds, nil
 }
+
+func (u *Usecase) SetUserRole(ctx context.Context, userId int64, role string) error {
+	user, err := tpportal.FindUser(ctx, u.st.DBSX(), userId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return errs.NewNotFound(fmt.Errorf("пользователь с id: %d не найден", userId))
+		}
+		return errs.NewInternal(err)
+	}
+	if user.Role.String() == role {
+		return nil
+	}
+
+	user.Role = tpportal.UserRole(role)
+
+	_, err = user.Update(ctx, u.st.DBSX(), boil.Whitelist(tpportal.UserColumns.Role))
+	if err != nil {
+		return errs.NewInternal(err)
+	}
+
+	return nil
+}

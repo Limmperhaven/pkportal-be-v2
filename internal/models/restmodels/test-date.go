@@ -13,7 +13,7 @@ type ListTestDatesRequest struct {
 	EducationYear int64 `json:"education_year"`
 }
 
-type ListTestDatesResponseItem struct {
+type TestDateResponse struct {
 	Id                int64  `json:"id"`
 	Date              string `json:"date"`
 	Time              string `json:"time"`

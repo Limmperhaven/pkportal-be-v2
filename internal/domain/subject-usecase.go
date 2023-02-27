@@ -79,6 +79,10 @@ func (u *Usecase) SetSubjectsToUser(ctx context.Context, req tpportal.SetSubject
 		return errs.NewInternal(err)
 	}
 
+	if req.FirstSubjectId == 0 && req.SecondSubjectId != 0 {
+		return errs.NewBadRequest(errors.New("невозможно выбрать предмет второго профиля, не выбрав предмет первого профиля"))
+	}
+
 	if dateCheck {
 		td, err := tpportal.UserTestDates(
 			tpportal.UserTestDateWhere.UserID.EQ(user.ID),
@@ -108,7 +112,13 @@ func (u *Usecase) SetSubjectsToUser(ctx context.Context, req tpportal.SetSubject
 			break
 		}
 	}
-	if req.FirstSubjectId != 0 {
+	if req.FirstSubjectId == 0 {
+		ups.FirstProfileSubjectID = null.Int64{Valid: false}
+	} else {
+		if firstUserProfile == nil {
+			return errs.NewBadRequest(errors.New("для выбора предмета заполните 1 профиль"))
+		}
+
 		valid := false
 		for _, subj := range firstUserProfile.R.Subjects {
 			if subj.ID == req.FirstSubjectId {
@@ -121,7 +131,12 @@ func (u *Usecase) SetSubjectsToUser(ctx context.Context, req tpportal.SetSubject
 		}
 		ups.FirstProfileSubjectID = null.Int64From(req.FirstSubjectId)
 	}
-	if req.SecondSubjectId != 0 {
+	if req.SecondSubjectId == 0 {
+		ups.SecondProfileSubjectID = null.Int64{Valid: false}
+	} else {
+		if secondUserProfile == nil {
+			return errs.NewBadRequest(errors.New("для выбора предмета заполните 2 профиль"))
+		}
 		valid := false
 		for _, subj := range secondUserProfile.R.Subjects {
 			if subj.ID == req.SecondSubjectId {

@@ -13,7 +13,7 @@ type ListTestDatesRequest struct {
 	EducationYear int64
 }
 
-type ListTestDatesResponseItem struct {
+type TestDateResponse struct {
 	Id                int64
 	Date              string
 	Time              string

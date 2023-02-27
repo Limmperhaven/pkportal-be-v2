@@ -55,7 +55,39 @@ func (u *Usecase) SetTestDatePubStatus(ctx context.Context, tdId int64, status s
 	return nil
 }
 
-func (u *Usecase) ListTestDates(ctx context.Context, filter tpportal.ListTestDatesRequest, availableOnly bool) ([]tpportal.ListTestDatesResponseItem, error) {
+func (u *Usecase) GetTestDate(ctx context.Context, tdId int64) (tpportal.TestDateResponse, error) {
+	td, err := tpportal.TestDates(
+		tpportal.TestDateWhere.ID.EQ(tdId),
+		qm.Load(tpportal.TestDateRels.UserTestDates),
+	).One(ctx, u.st.DBSX())
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return tpportal.TestDateResponse{}, errs.NewNotFound(fmt.Errorf("дата тестирования с id: %d не найдена", tdId))
+		}
+		return tpportal.TestDateResponse{}, errs.NewInternal(err)
+	}
+
+	tdDate, tdTime := u.formatDateTime(td.DateTime)
+
+	var regPersons int64
+	if td.R.UserTestDates != nil {
+		regPersons = int64(len(td.R.UserTestDates))
+	}
+
+	res := tpportal.TestDateResponse{
+		Id:                td.ID,
+		Date:              tdDate,
+		Time:              tdTime,
+		Location:          td.Location,
+		RegisteredPersons: regPersons,
+		MaxPersons:        int64(td.MaxPersons),
+		EducationYear:     int64(td.EducationYear),
+		PubStatus:         td.PubStatus.String(),
+	}
+	return res, nil
+}
+
+func (u *Usecase) ListTestDates(ctx context.Context, filter tpportal.ListTestDatesRequest, availableOnly bool) ([]tpportal.TestDateResponse, error) {
 	user, err := u.extractUserFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -91,19 +123,24 @@ func (u *Usecase) ListTestDates(ctx context.Context, filter tpportal.ListTestDat
 		return nil, errs.NewInternal(err)
 	}
 
-	res := make([]tpportal.ListTestDatesResponseItem, 0, len(tds))
+	res := make([]tpportal.TestDateResponse, 0, len(tds))
 	for _, td := range tds {
 		if availableOnly && (td.MaxPersons == len(td.R.UserTestDates) || td.EducationYear != user.EducationYear) {
 			continue
 		}
 		date, time := u.formatDateTime(td.DateTime)
 
-		res = append(res, tpportal.ListTestDatesResponseItem{
+		var regPersons int64
+		if td.R.UserTestDates != nil {
+			regPersons = int64(len(td.R.UserTestDates))
+		}
+
+		res = append(res, tpportal.TestDateResponse{
 			Id:                td.ID,
 			Date:              date,
 			Time:              time,
 			Location:          td.Location,
-			RegisteredPersons: int64(len(td.R.UserTestDates)),
+			RegisteredPersons: regPersons,
 			MaxPersons:        int64(td.MaxPersons),
 			EducationYear:     int64(td.EducationYear),
 			PubStatus:         td.PubStatus.String(),
@@ -144,6 +181,11 @@ func (u *Usecase) SignUpUserToTestDate(ctx context.Context, userId, tdId int64, 
 				tpportal.UserProfileSubjectRels.SecondProfileSubject,
 			),
 		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserForeignLanguages,
+			),
+		),
 	).One(ctx, u.st.DBSX())
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -167,6 +209,49 @@ func (u *Usecase) SignUpUserToTestDate(ctx context.Context, userId, tdId int64, 
 				return errs.NewBadRequest(errors.New("дату тестирования можно изменять не позднее чем за 3 дня до начала тестирования"))
 			}
 		}
+	}
+
+	if user.R.UserProfiles != nil {
+		valid := false
+		for _, up := range user.R.UserProfiles {
+			if up.UserEducationYear == user.EducationYear {
+				valid = true
+				break
+			}
+		}
+		if !valid {
+			return errs.NewBadRequest(errors.New("для записи на тестирование выберите хотябы один профиль"))
+		}
+	} else {
+		return errs.NewBadRequest(errors.New("для записи на тестирование выберите хотябы один профиль"))
+	}
+	if user.R.UserProfileSubjects != nil {
+		valid := false
+		for _, ups := range user.R.UserProfileSubjects {
+			if ups.UserEducationYear == user.EducationYear {
+				valid = true
+				break
+			}
+		}
+		if !valid {
+			return errs.NewBadRequest(errors.New("для записи на тестирование выберите профильные предмет для указанных профилей"))
+		}
+	} else {
+		return errs.NewBadRequest(errors.New("для записи на тестирование выберите профильные предмет для указанных профилей"))
+	}
+	if user.R.UserForeignLanguages != nil {
+		valid := false
+		for _, ufl := range user.R.UserForeignLanguages {
+			if ufl.UserEducationYear == user.EducationYear {
+				valid = true
+				break
+			}
+		}
+		if !valid {
+			return errs.NewBadRequest(errors.New("для записи на тестирование выберите иностранный язык"))
+		}
+	} else {
+		return errs.NewBadRequest(errors.New("для записи на тестирование выберите иностранный язык"))
 	}
 
 	td, err := tpportal.FindTestDate(ctx, u.st.DBSX(), tdId)

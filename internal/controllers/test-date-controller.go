@@ -30,7 +30,18 @@ func (s *ControllerStorage) CreateTestDate(c *gin.Context) {
 }
 
 func (s *ControllerStorage) GetTestDate(c *gin.Context) {
-	response.NewErrorResponse(c, errs.NewNotImplemented())
+	tdIdParam := c.Param("id")
+	tdId, err := strconv.ParseInt(tdIdParam, 10, 64)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(fmt.Errorf("невалидный id даты тестирования: %s", tdIdParam)))
+		return
+	}
+	res, err := s.uc.GetTestDate(c, tdId)
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, *mapper.NewTestDateResponseToRest(&res))
 }
 
 func (s *ControllerStorage) UpdateTestDate(c *gin.Context) {
@@ -65,7 +76,7 @@ func (s *ControllerStorage) ListTestDates(c *gin.Context) {
 		response.NewErrorResponse(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, mapper.NewListTestDateResponseToRest(tds))
+	c.JSON(http.StatusOK, mapper.NewTestDateResponseArrayToRest(tds))
 }
 
 func (s *ControllerStorage) ListAvailableTestDates(c *gin.Context) {
@@ -74,7 +85,7 @@ func (s *ControllerStorage) ListAvailableTestDates(c *gin.Context) {
 		response.NewErrorResponse(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, mapper.NewListTestDateResponseToRest(tds))
+	c.JSON(http.StatusOK, mapper.NewTestDateResponseArrayToRest(tds))
 }
 
 func (s *ControllerStorage) SignUpUserToTestDate(c *gin.Context) {
