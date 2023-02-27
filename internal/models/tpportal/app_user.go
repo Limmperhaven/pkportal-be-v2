@@ -126,7 +126,7 @@ type UploadFileRequest struct {
 
 type DownloadScreenshotResponse struct {
 	FileName    string
-	FileContent []byte
+	FileContent string
 	ContentType string
 }
 

@@ -173,8 +173,9 @@ func (s *ControllerStorage) DownloadScreenshot(c *gin.Context) {
 		response.NewErrorResponse(c, err)
 		return
 	}
-	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", res.FileName))
-	c.Data(http.StatusOK, res.ContentType, res.FileContent)
+	//c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", res.FileName))
+	//c.Data(http.StatusOK, res.ContentType, res.FileContent)
+	c.JSON(http.StatusOK, *mapper.NewDownloadScreenshotResponseToRest(&res))
 }
 
 func (s *ControllerStorage) DownloadRegistrationList(c *gin.Context) {

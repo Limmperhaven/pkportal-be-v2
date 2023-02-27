@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"fmt"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/body"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/config"
@@ -474,9 +475,11 @@ func (u *Usecase) DownloadScreenshot(ctx context.Context, userId int64) (tpporta
 	}
 	contentType := u.detectContentType(fileData)
 
+	b64File := base64.StdEncoding.EncodeToString(fileData)
+
 	return tpportal.DownloadScreenshotResponse{
 		FileName:    fileName,
-		FileContent: fileData,
+		FileContent: b64File,
 		ContentType: contentType,
 	}, nil
 }

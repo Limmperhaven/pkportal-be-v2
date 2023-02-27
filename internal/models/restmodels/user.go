@@ -61,3 +61,9 @@ type UserFilter struct {
 	StatusIds      []int64 `json:"status_ids"`
 	TestDateIds    []int64 `json:"test_date_ids"`
 }
+
+type DownloadScreenshotResponse struct {
+	FileName    string `json:"file_name"`
+	FileContent string `json:"file_content"`
+	ContentType string `json:"content_type"`
+}
