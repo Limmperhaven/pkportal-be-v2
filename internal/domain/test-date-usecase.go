@@ -386,7 +386,7 @@ func (u *Usecase) ListCommonLocations(ctx context.Context) ([]tpportal.IdName, e
 	return res, nil
 }
 
-func (u *Usecase) SetTestDateAttended(ctx context.Context, userId, tdId int64) error {
+func (u *Usecase) SetTestDateAttended(ctx context.Context, userId, tdId int64, attendance bool) error {
 	user, err := tpportal.FindUser(ctx, u.st.DBSX(), userId)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -405,7 +405,10 @@ func (u *Usecase) SetTestDateAttended(ctx context.Context, userId, tdId int64) e
 	if utd.TestDateID != tdId {
 		return errs.NewNotFound(errors.New("указанная запись на тестирование не найдена"))
 	}
-	utd.IsAttended = true
+	if utd.IsAttended == attendance {
+		return nil
+	}
+	utd.IsAttended = attendance
 	_, err = utd.Update(ctx, u.st.DBSX(), boil.Whitelist(tpportal.UserTestDateColumns.IsAttended))
 	if err != nil {
 		return errs.NewInternal(err)

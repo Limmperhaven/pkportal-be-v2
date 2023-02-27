@@ -39,7 +39,7 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		adminTd.POST("/signUpUser/:userId/:tdId", c.SignUpUserToTestDate)
 		authTd.POST("/signUpMe/:tdId", c.SignUpMeToTestDate)
 		adminTd.GET("/listCommonLocations", c.ListCommonLocations)
-		adminTd.POST("/setAttended/:userId/:tdId", c.SetTestDateAttended)
+		adminTd.POST("/setAttendance/:userId/:tdId/:attendance", c.SetTestDateAttended)
 		adminTd.GET("/regList/:tdId", c.DownloadRegistrationList)
 		adminTd.GET("/export/:tdId", c.ExportToXlsx)
 	}

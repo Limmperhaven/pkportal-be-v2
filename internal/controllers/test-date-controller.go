@@ -152,7 +152,13 @@ func (s *ControllerStorage) SetTestDateAttended(c *gin.Context) {
 		response.NewErrorResponse(c, errs.NewBadRequest(fmt.Errorf("невалидный id даты тестирования: %s", tdIdParam)))
 		return
 	}
-	err = s.uc.SetTestDateAttended(c, userId, tdId)
+	attendanceParam := c.Param("attendance")
+	attendance, err := strconv.ParseBool(tdIdParam)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(fmt.Errorf("невалидное значение посещения: %s", attendanceParam)))
+		return
+	}
+	err = s.uc.SetTestDateAttended(c, userId, tdId, attendance)
 	if err != nil {
 		response.NewErrorResponse(c, err)
 		return
