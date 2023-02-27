@@ -9,6 +9,10 @@ type CreateTestDateRequest struct {
 	PubStatus     string `json:"pub_status"`
 }
 
+type ListTestDatesRequest struct {
+	EducationYear int64 `json:"education_year"`
+}
+
 type ListTestDatesResponseItem struct {
 	Id                int64  `json:"id"`
 	Date              string `json:"date"`

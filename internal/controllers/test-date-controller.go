@@ -54,21 +54,27 @@ func (s *ControllerStorage) SetTestDatePubStatus(c *gin.Context) {
 }
 
 func (s *ControllerStorage) ListTestDates(c *gin.Context) {
-	tds, err := s.uc.ListTestDates(c, false)
+	var req restmodels.ListTestDatesRequest
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(err))
+		return
+	}
+	tds, err := s.uc.ListTestDates(c, *mapper.NewListTestDatesRequestFromRest(&req), false)
 	if err != nil {
 		response.NewErrorResponse(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, mapper.ListTestDateResponseToRest(tds))
+	c.JSON(http.StatusOK, mapper.NewListTestDateResponseToRest(tds))
 }
 
 func (s *ControllerStorage) ListAvailableTestDates(c *gin.Context) {
-	tds, err := s.uc.ListTestDates(c, true)
+	tds, err := s.uc.ListTestDates(c, tpportal.ListTestDatesRequest{}, true)
 	if err != nil {
 		response.NewErrorResponse(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, mapper.ListTestDateResponseToRest(tds))
+	c.JSON(http.StatusOK, mapper.NewListTestDateResponseToRest(tds))
 }
 
 func (s *ControllerStorage) SignUpUserToTestDate(c *gin.Context) {

@@ -124,12 +124,6 @@ type UploadFileRequest struct {
 	ContentType string
 }
 
-type DownloadScreenshotResponse struct {
-	FileName    string
-	FileContent string
-	ContentType string
-}
-
 type UserFilter struct {
 	ProfileIds     []int64
 	EducationYears []int64
@@ -152,4 +146,19 @@ type RegListDataUser struct {
 	FirstProfileSubject  string
 	SecondProfile        string
 	SecondProfileSubject string
+}
+
+type ExportUserData struct {
+	Id                  int64
+	DateOfBirth         string
+	Email               string
+	FirstProfileName    string
+	FirstSubjectName    string
+	SecondProfileName   string
+	SecondSubjectName   string
+	ForeignLanguageName string
+	SchoolName          string
+	PhoneNumber         string
+	ParentPhoneNumber   string
+	StatusName          string
 }

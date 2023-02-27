@@ -95,11 +95,3 @@ func NewListUsersRequestFromRest(in *restmodels.UserFilter) *tpportal.UserFilter
 		TestDateIds:    in.TestDateIds,
 	}
 }
-
-func NewDownloadScreenshotResponseToRest(in *tpportal.DownloadScreenshotResponse) *restmodels.DownloadScreenshotResponse {
-	return &restmodels.DownloadScreenshotResponse{
-		FileName:    in.FileName,
-		FileContent: in.FileContent,
-		ContentType: in.ContentType,
-	}
-}

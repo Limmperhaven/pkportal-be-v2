@@ -175,7 +175,7 @@ func (s *ControllerStorage) DownloadScreenshot(c *gin.Context) {
 	}
 	//c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", res.FileName))
 	//c.Data(http.StatusOK, res.ContentType, res.FileContent)
-	c.JSON(http.StatusOK, *mapper.NewDownloadScreenshotResponseToRest(&res))
+	c.JSON(http.StatusOK, *mapper.NewDownloadFileResponseToRest(&res))
 }
 
 func (s *ControllerStorage) DownloadMyScreenshot(c *gin.Context) {
@@ -190,7 +190,7 @@ func (s *ControllerStorage) DownloadMyScreenshot(c *gin.Context) {
 		response.NewErrorResponse(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, *mapper.NewDownloadScreenshotResponseToRest(&res))
+	c.JSON(http.StatusOK, *mapper.NewDownloadFileResponseToRest(&res))
 }
 
 func (s *ControllerStorage) DownloadRegistrationList(c *gin.Context) {
@@ -200,16 +200,25 @@ func (s *ControllerStorage) DownloadRegistrationList(c *gin.Context) {
 		response.NewErrorResponse(c, errs.NewBadRequest(fmt.Errorf("невалидный id: %s", tdIdParam)))
 		return
 	}
-	pdf, err := s.uc.DownloadRegistrationList(c, tdId)
+	res, err := s.uc.DownloadRegistrationList(c, tdId)
 	if err != nil {
 		response.NewErrorResponse(c, err)
 		return
 	}
-
-	c.Header("Content-Disposition", "attachment; filename=reglist.pdf")
-	c.Data(http.StatusOK, "application/pdf", pdf)
+	c.JSON(http.StatusOK, *mapper.NewDownloadFileResponseToRest(&res))
 }
 
 func (s *ControllerStorage) ExportToXlsx(c *gin.Context) {
-	c.Status(http.StatusOK)
+	tdIdParam := c.Param("tdId")
+	tdId, err := strconv.ParseInt(tdIdParam, 10, 64)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(fmt.Errorf("невалидный id: %s", tdIdParam)))
+		return
+	}
+	res, err := s.uc.ExportTestDateToXlsx(c, tdId)
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, *mapper.NewDownloadFileResponseToRest(&res))
 }

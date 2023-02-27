@@ -9,6 +9,10 @@ type CreateTestDateRequest struct {
 	PubStatus     string
 }
 
+type ListTestDatesRequest struct {
+	EducationYear int64
+}
+
 type ListTestDatesResponseItem struct {
 	Id                int64
 	Date              string

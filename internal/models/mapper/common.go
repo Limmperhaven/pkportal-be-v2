@@ -19,3 +19,11 @@ func NewIdNameArrayToRest(in []tpportal.IdName) []restmodels.IdName {
 	}
 	return res
 }
+
+func NewDownloadFileResponseToRest(in *tpportal.DownloadFileResponse) *restmodels.DownloadFileResponse {
+	return &restmodels.DownloadFileResponse{
+		FileName:    in.FileName,
+		FileContent: in.FileContent,
+		ContentType: in.ContentType,
+	}
+}

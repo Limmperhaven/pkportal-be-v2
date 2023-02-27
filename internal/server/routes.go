@@ -32,7 +32,7 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		authTd.GET("/byId/:id", c.GetTestDate)
 		adminTd.PUT("/byId/:id", c.UpdateTestDate)
 		adminTd.POST("/setStatus/:id/:status", c.SetTestDatePubStatus)
-		adminTd.GET("/list", c.ListTestDates)
+		adminTd.POST("/list", c.ListTestDates)
 		authTd.GET("/listAvailable", c.ListAvailableTestDates)
 		adminTd.POST("/signUpUser/:userId/:tdId", c.SignUpUserToTestDate)
 		authTd.POST("/signUpMe/:tdId", c.SignUpMeToTestDate)

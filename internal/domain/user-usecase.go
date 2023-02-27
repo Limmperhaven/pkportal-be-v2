@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
 	"encoding/base64"
@@ -10,15 +9,12 @@ import (
 	"github.com/Limmperhaven/pkportal-be-v2/internal/config"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/tpportal"
-	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
 	"github.com/friendsofgo/errors"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
-	"html/template"
-	"os"
 	"strings"
 )
 
@@ -443,7 +439,7 @@ func (u *Usecase) UploadScreenshot(ctx context.Context, req tpportal.UploadScree
 	return err
 }
 
-func (u *Usecase) DownloadScreenshot(ctx context.Context, userId int64) (tpportal.DownloadScreenshotResponse, error) {
+func (u *Usecase) DownloadScreenshot(ctx context.Context, userId int64) (tpportal.DownloadFileResponse, error) {
 	user, err := tpportal.Users(
 		tpportal.UserWhere.ID.EQ(userId),
 		qm.Load(
@@ -452,9 +448,9 @@ func (u *Usecase) DownloadScreenshot(ctx context.Context, userId int64) (tpporta
 	).One(ctx, u.st.DBSX())
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return tpportal.DownloadScreenshotResponse{}, errs.NewNotFound(fmt.Errorf("пользователь с id: %d не найден", userId))
+			return tpportal.DownloadFileResponse{}, errs.NewNotFound(fmt.Errorf("пользователь с id: %d не найден", userId))
 		}
-		return tpportal.DownloadScreenshotResponse{}, errs.NewInternal(err)
+		return tpportal.DownloadFileResponse{}, errs.NewInternal(err)
 	}
 
 	var fileKey, fileName string
@@ -466,186 +462,22 @@ func (u *Usecase) DownloadScreenshot(ctx context.Context, userId int64) (tpporta
 		}
 	}
 	if fileKey == "" {
-		return tpportal.DownloadScreenshotResponse{}, errs.NewNotFound(errors.New("скриншот пользователя не найден"))
+		return tpportal.DownloadFileResponse{}, errs.NewNotFound(errors.New("скриншот пользователя не найден"))
 	}
 
 	fileData, err := u.s3.DownloadFile(ctx, fileKey)
 	if err != nil {
-		return tpportal.DownloadScreenshotResponse{}, errs.NewInternal(fmt.Errorf("не удалось скачать файл: %s", err.Error()))
+		return tpportal.DownloadFileResponse{}, errs.NewInternal(fmt.Errorf("не удалось скачать файл: %s", err.Error()))
 	}
 	contentType := u.detectContentType(fileData)
 
 	b64File := base64.StdEncoding.EncodeToString(fileData)
 
-	return tpportal.DownloadScreenshotResponse{
+	return tpportal.DownloadFileResponse{
 		FileName:    fileName,
 		FileContent: b64File,
 		ContentType: contentType,
 	}, nil
-}
-
-func (u *Usecase) DownloadRegistrationList(ctx context.Context, tdId int64) ([]byte, error) {
-	td, err := tpportal.TestDates(
-		tpportal.TestDateWhere.ID.EQ(tdId),
-		qm.Load(
-			qm.Rels(
-				tpportal.TestDateRels.UserTestDates,
-				tpportal.UserTestDateRels.User,
-				tpportal.UserRels.UserProfiles,
-				tpportal.UserProfileRels.FirstProfile,
-			),
-		),
-		qm.Load(
-			qm.Rels(
-				tpportal.TestDateRels.UserTestDates,
-				tpportal.UserTestDateRels.User,
-				tpportal.UserRels.UserProfiles,
-				tpportal.UserProfileRels.SecondProfile,
-			),
-		),
-		qm.Load(
-			qm.Rels(
-				tpportal.TestDateRels.UserTestDates,
-				tpportal.UserTestDateRels.User,
-				tpportal.UserRels.UserProfileSubjects,
-				tpportal.UserProfileSubjectRels.FirstProfileSubject,
-			),
-		),
-		qm.Load(
-			qm.Rels(
-				tpportal.TestDateRels.UserTestDates,
-				tpportal.UserTestDateRels.User,
-				tpportal.UserRels.UserProfileSubjects,
-				tpportal.UserProfileSubjectRels.SecondProfileSubject,
-			),
-		),
-		qm.Load(
-			qm.Rels(
-				tpportal.TestDateRels.UserTestDates,
-				tpportal.UserTestDateRels.User,
-				tpportal.UserRels.UserForeignLanguages,
-				tpportal.UserForeignLanguageRels.ForeignLanguage,
-			),
-		),
-	).One(ctx, u.st.DBSX())
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errs.NewNotFound(fmt.Errorf("даты тестирования с id: %d не найдено", tdId))
-		}
-		return nil, errs.NewInternal(err)
-	}
-
-	tdDate, tdTime := u.formatDateTime(td.DateTime)
-
-	rld := tpportal.RegListData{
-		TdDate:     tdDate,
-		TdTime:     tdTime,
-		TdLocation: td.Location,
-	}
-
-	rldu := make([]tpportal.RegListDataUser, 0, len(td.R.UserTestDates))
-	if td.R.UserTestDates != nil {
-		for _, utd := range td.R.UserTestDates {
-			user := utd.R.User
-
-			var firstProfile tpportal.Profile
-			var secondProfile tpportal.Profile
-			var firstSubject tpportal.Subject
-			var secondSubject tpportal.Subject
-			var foreignLanguage tpportal.ForeignLanguage
-
-			if user.R.UserProfiles != nil {
-				for _, up := range user.R.UserProfiles {
-					if up.UserEducationYear == user.EducationYear {
-						if up.R.FirstProfile != nil {
-							firstProfile = *up.R.FirstProfile
-						}
-						if up.R.SecondProfile != nil {
-							secondProfile = *up.R.SecondProfile
-						}
-						break
-					}
-				}
-			}
-			if user.R.UserProfileSubjects != nil {
-				for _, ups := range user.R.UserProfileSubjects {
-					if ups.UserEducationYear == user.EducationYear {
-						if ups.R.FirstProfileSubject != nil {
-							firstSubject = *ups.R.FirstProfileSubject
-						}
-						if ups.R.SecondProfileSubject != nil {
-							secondSubject = *ups.R.SecondProfileSubject
-						}
-						break
-					}
-				}
-			}
-			if user.R.UserForeignLanguages != nil {
-				for _, ufls := range user.R.UserForeignLanguages {
-					if ufls.UserEducationYear == user.EducationYear {
-						if ufls.R.ForeignLanguage != nil {
-							foreignLanguage = *ufls.R.ForeignLanguage
-						}
-						break
-					}
-				}
-			}
-			rldu = append(rldu, tpportal.RegListDataUser{
-				Id:                   user.ID,
-				Fio:                  user.Fio,
-				ForeignLanguage:      foreignLanguage.Name,
-				FirstProfile:         firstProfile.Name,
-				FirstProfileSubject:  firstSubject.Name,
-				SecondProfile:        secondProfile.Name,
-				SecondProfileSubject: secondSubject.Name,
-			})
-
-		}
-
-	}
-	rld.Users = rldu
-
-	htmlTemplate, err := os.ReadFile("etc/template.html")
-	if err != nil {
-
-	}
-
-	t, err := template.New("reglist").Parse(string(htmlTemplate))
-	if err != nil {
-		return nil, errs.NewInternal(fmt.Errorf("ошибка при создании шаблона html: %s", err.Error()))
-	}
-
-	outHtml := new(bytes.Buffer)
-	err = t.Execute(outHtml, rld)
-	if err != nil {
-		return nil, errs.NewInternal(fmt.Errorf("ошибка при генерации html: %s", err.Error()))
-	}
-
-	pdfg, err := wkhtmltopdf.NewPDFGenerator()
-	if err != nil {
-		if err != nil {
-			return nil, errs.NewInternal(fmt.Errorf("ошибка при инициализации генератора pdf: %s", err.Error()))
-		}
-	}
-	page := wkhtmltopdf.NewPageReader(bytes.NewReader(outHtml.Bytes()))
-
-	page.EnableLocalFileAccess.Set(true)
-	pdfg.AddPage(page)
-
-	pdfg.MarginLeft.Set(0)
-	pdfg.MarginRight.Set(0)
-	pdfg.Dpi.Set(300)
-	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
-	pdfg.Orientation.Set(wkhtmltopdf.OrientationPortrait)
-
-	err = pdfg.Create()
-	if err != nil {
-		if err != nil {
-			return nil, errs.NewInternal(fmt.Errorf("ошибка при генерации pdf: %s", err.Error()))
-		}
-	}
-
-	return pdfg.Bytes(), nil
 }
 
 func (u *Usecase) ListUsers(ctx context.Context, req tpportal.UserFilter) ([]tpportal.GetUserResponse, error) {
