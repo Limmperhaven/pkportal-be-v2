@@ -153,7 +153,7 @@ func (s *ControllerStorage) SetTestDateAttended(c *gin.Context) {
 		return
 	}
 	attendanceParam := c.Param("attendance")
-	attendance, err := strconv.ParseBool(tdIdParam)
+	attendance, err := strconv.ParseBool(attendanceParam)
 	if err != nil {
 		response.NewErrorResponse(c, errs.NewBadRequest(fmt.Errorf("невалидное значение посещения: %s", attendanceParam)))
 		return
