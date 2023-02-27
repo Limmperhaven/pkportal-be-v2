@@ -19,6 +19,14 @@ import (
 )
 
 func (u *Usecase) SignUp(ctx context.Context, req *tpportal.SignUpRequest) error {
+	checkUser, err := tpportal.Users(tpportal.UserWhere.Email.EQ(req.Email)).One(ctx, u.st.DBSX())
+	if err != nil && err != sql.ErrNoRows {
+		return errs.NewInternal(err)
+	}
+	if checkUser != nil {
+		return errs.NewBadRequest(errors.New("пользователь с таким email уже зарегистрирован"))
+	}
+
 	hashPassword, err := u.hashPassword(req.Password)
 	if err != nil {
 		return err
