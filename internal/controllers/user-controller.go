@@ -176,3 +176,24 @@ func (s *ControllerStorage) DownloadScreenshot(c *gin.Context) {
 	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", res.FileName))
 	c.Data(http.StatusOK, res.ContentType, res.FileContent)
 }
+
+func (s *ControllerStorage) DownloadRegistrationList(c *gin.Context) {
+	tdIdParam := c.Param("tdId")
+	tdId, err := strconv.ParseInt(tdIdParam, 10, 64)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(fmt.Errorf("невалидный id: %s", tdIdParam)))
+		return
+	}
+	pdf, err := s.uc.DownloadRegistrationList(c, tdId)
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+
+	c.Header("Content-Disposition", "attachment; filename=reglist.pdf")
+	c.Data(http.StatusOK, "application/pdf", pdf)
+}
+
+func (s *ControllerStorage) ExportToXlsx(c *gin.Context) {
+	c.Status(http.StatusOK)
+}

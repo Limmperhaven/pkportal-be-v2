@@ -38,6 +38,8 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		authTd.POST("/signUpMe/:tdId", c.SignUpMeToTestDate)
 		adminTd.GET("/listCommonLocations", c.ListCommonLocations)
 		adminTd.POST("/setAttended/:userId/:tdId", c.SetTestDateAttended)
+		adminTd.GET("/regList/:tdId", c.DownloadRegistrationList)
+		adminTd.GET("/export/:tdId", c.ExportToXlsx)
 	}
 
 	authUser := authorized.Group("/user")

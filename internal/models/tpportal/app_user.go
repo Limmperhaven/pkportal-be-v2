@@ -136,3 +136,20 @@ type UserFilter struct {
 	StatusIds      []int64
 	TestDateIds    []int64
 }
+
+type RegListData struct {
+	TdDate     string
+	TdTime     string
+	TdLocation string
+	Users      []RegListDataUser
+}
+
+type RegListDataUser struct {
+	Id                   int64
+	Fio                  string
+	ForeignLanguage      string
+	FirstProfile         string
+	FirstProfileSubject  string
+	SecondProfile        string
+	SecondProfileSubject string
+}
