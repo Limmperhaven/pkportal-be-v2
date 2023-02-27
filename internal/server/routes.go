@@ -54,6 +54,7 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		authUser.GET("/me", c.GetMe)
 		authUser.POST("/listStatuses", c.ListStatuses)
 		authUser.POST("/uploadScreenshot", c.UploadScreenshot)
+		authUser.GET("/downloadMyScreenshot", c.DownloadMyScreenshot)
 	}
 
 	authProfile := authorized.Group("/profiles")

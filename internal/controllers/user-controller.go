@@ -178,6 +178,21 @@ func (s *ControllerStorage) DownloadScreenshot(c *gin.Context) {
 	c.JSON(http.StatusOK, *mapper.NewDownloadScreenshotResponseToRest(&res))
 }
 
+func (s *ControllerStorage) DownloadMyScreenshot(c *gin.Context) {
+	userIdCtx, ok := c.Get(body.UserCtx)
+	if !ok {
+		response.NewErrorResponse(c, errs.NewInternal(errors.New("в контексте отсутствует userId")))
+		return
+	}
+	userId := userIdCtx.(tpportal.User).ID
+	res, err := s.uc.DownloadScreenshot(c, userId)
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, *mapper.NewDownloadScreenshotResponseToRest(&res))
+}
+
 func (s *ControllerStorage) DownloadRegistrationList(c *gin.Context) {
 	tdIdParam := c.Param("tdId")
 	tdId, err := strconv.ParseInt(tdIdParam, 10, 64)
