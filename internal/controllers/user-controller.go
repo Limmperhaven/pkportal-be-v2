@@ -135,6 +135,8 @@ func (s *ControllerStorage) SetUserStatus(c *gin.Context) {
 }
 
 func (s *ControllerStorage) UploadScreenshot(c *gin.Context) {
+	screenType := c.PostForm("type")
+	fmt.Println(screenType)
 	fileHeader, err := c.FormFile("file")
 	if err != nil {
 		response.NewErrorResponse(c, errs.NewBadRequest(err))
@@ -151,7 +153,7 @@ func (s *ControllerStorage) UploadScreenshot(c *gin.Context) {
 		return
 	}
 	err = s.uc.UploadScreenshot(c, *mapper.NewUploadScreenshotRequestFromRest(
-		fileHeader.Filename, fileHeader.Size, fileData))
+		fileHeader.Filename, screenType, fileHeader.Size, fileData))
 	if err != nil {
 		response.NewErrorResponse(c, err)
 		return

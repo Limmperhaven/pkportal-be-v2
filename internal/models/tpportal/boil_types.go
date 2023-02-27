@@ -79,6 +79,38 @@ func (e TestDatePubStatus) String() string {
 	return string(e)
 }
 
+type ScreenshotType string
+
+// Enum values for ScreenshotType
+const (
+	ScreenshotTypeLyceum   ScreenshotType = "lyceum"
+	ScreenshotTypeOlympiad ScreenshotType = "olympiad"
+	ScreenshotTypeMCKO     ScreenshotType = "MCKO"
+	ScreenshotTypeQuota    ScreenshotType = "quota"
+)
+
+func AllScreenshotType() []ScreenshotType {
+	return []ScreenshotType{
+		ScreenshotTypeLyceum,
+		ScreenshotTypeOlympiad,
+		ScreenshotTypeMCKO,
+		ScreenshotTypeQuota,
+	}
+}
+
+func (e ScreenshotType) IsValid() error {
+	switch e {
+	case ScreenshotTypeLyceum, ScreenshotTypeOlympiad, ScreenshotTypeMCKO, ScreenshotTypeQuota:
+		return nil
+	default:
+		return errors.New("enum is not valid")
+	}
+}
+
+func (e ScreenshotType) String() string {
+	return string(e)
+}
+
 type UserGender string
 
 // Enum values for UserGender

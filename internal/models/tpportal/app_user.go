@@ -74,7 +74,13 @@ type GetUserResponse struct {
 	SecondProfileSubject IdName
 	ForeignLanguage      IdName
 	TestDate             GetUserResponseTestDate
+	Screenshot           GetUserResponseScreenshot
 	IsActivated          bool
+}
+
+type GetUserResponseScreenshot struct {
+	FileName       string
+	ScreenshotType string
 }
 
 type GetUserResponseTestDate struct {
@@ -105,9 +111,10 @@ type UpdateUserRequest struct {
 }
 
 type UploadScreenshotRequest struct {
-	FileName    string
-	FileSize    int64
-	FileContent []byte
+	ScreenshotType string
+	FileName       string
+	FileSize       int64
+	FileContent    []byte
 }
 
 type UploadFileRequest struct {

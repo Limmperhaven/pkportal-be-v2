@@ -25,6 +25,7 @@ func NewGetUserResponseToRest(in *tpportal.GetUserResponse) *restmodels.GetUserR
 		SecondProfileSubject: *NewIdNameToRest(&in.SecondProfileSubject),
 		ForeignLanguage:      *NewIdNameToRest(&in.ForeignLanguage),
 		TestDate:             *NewGetUserResponseTestDateToRest(&in.TestDate),
+		Screenshot:           *NewGetUserResponseScreenshotToRest(&in.Screenshot),
 		IsActivated:          in.IsActivated,
 	}
 }
@@ -35,6 +36,13 @@ func NewGetUserResponseArrayToRest(in []tpportal.GetUserResponse) []restmodels.G
 		res[i] = *NewGetUserResponseToRest(&item)
 	}
 	return res
+}
+
+func NewGetUserResponseScreenshotToRest(in *tpportal.GetUserResponseScreenshot) *restmodels.GetUserResponseScreenshot {
+	return &restmodels.GetUserResponseScreenshot{
+		FileName:       in.FileName,
+		ScreenshotType: in.ScreenshotType,
+	}
 }
 
 func NewGetUserResponseTestDateToRest(in *tpportal.GetUserResponseTestDate) *restmodels.GetUserResponseTestDate {
@@ -70,11 +78,12 @@ func NewUpdateUserRequestFromRest(in *restmodels.UpdateUserRequest) *tpportal.Up
 	}
 }
 
-func NewUploadScreenshotRequestFromRest(fileName string, fileSize int64, fileContent []byte) *tpportal.UploadScreenshotRequest {
+func NewUploadScreenshotRequestFromRest(fileName, screenType string, fileSize int64, fileContent []byte) *tpportal.UploadScreenshotRequest {
 	return &tpportal.UploadScreenshotRequest{
-		FileName:    fileName,
-		FileSize:    fileSize,
-		FileContent: fileContent,
+		ScreenshotType: screenType,
+		FileName:       fileName,
+		FileSize:       fileSize,
+		FileContent:    fileContent,
 	}
 }
 

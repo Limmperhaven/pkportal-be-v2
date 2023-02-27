@@ -1,25 +1,31 @@
 package restmodels
 
 type GetUserResponse struct {
-	Id                   int64                   `json:"id"`
-	Role                 string                  `json:"role"`
-	Fio                  string                  `json:"fio"`
-	ShortFio             string                  `json:"short_fio"`
-	DateOfBirth          string                  `json:"date_of_birth"`
-	Gender               string                  `json:"gender"`
-	Email                string                  `json:"email"`
-	PhoneNumber          string                  `json:"phone_number"`
-	ParentPhoneNumber    string                  `json:"parent_phone_number"`
-	CurrentSchool        string                  `json:"current_school"`
-	EducationYear        int64                   `json:"education_year"`
-	Status               IdName                  `json:"status"`
-	FirstProfile         IdName                  `json:"first_profile"`
-	SecondProfile        IdName                  `json:"second_profile"`
-	FirstProfileSubject  IdName                  `json:"first_profile_subject"`
-	SecondProfileSubject IdName                  `json:"second_profile_subject"`
-	ForeignLanguage      IdName                  `json:"foreign_language"`
-	TestDate             GetUserResponseTestDate `json:"test_date"`
-	IsActivated          bool                    `json:"is_activated"`
+	Id                   int64                     `json:"id"`
+	Role                 string                    `json:"role"`
+	Fio                  string                    `json:"fio"`
+	ShortFio             string                    `json:"short_fio"`
+	DateOfBirth          string                    `json:"date_of_birth"`
+	Gender               string                    `json:"gender"`
+	Email                string                    `json:"email"`
+	PhoneNumber          string                    `json:"phone_number"`
+	ParentPhoneNumber    string                    `json:"parent_phone_number"`
+	CurrentSchool        string                    `json:"current_school"`
+	EducationYear        int64                     `json:"education_year"`
+	Status               IdName                    `json:"status"`
+	FirstProfile         IdName                    `json:"first_profile"`
+	SecondProfile        IdName                    `json:"second_profile"`
+	FirstProfileSubject  IdName                    `json:"first_profile_subject"`
+	SecondProfileSubject IdName                    `json:"second_profile_subject"`
+	ForeignLanguage      IdName                    `json:"foreign_language"`
+	TestDate             GetUserResponseTestDate   `json:"test_date"`
+	Screenshot           GetUserResponseScreenshot `json:"screenshot"`
+	IsActivated          bool                      `json:"is_activated"`
+}
+
+type GetUserResponseScreenshot struct {
+	FileName       string `json:"file_name"`
+	ScreenshotType string `json:"screenshot_type"`
 }
 
 type GetUserResponseTestDate struct {

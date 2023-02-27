@@ -3,6 +3,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TYPE user_role AS ENUM ('admin', 'user');
 CREATE TYPE user_gender AS ENUM ('male', 'female');
 CREATE TYPE test_date_pub_status AS ENUM ('shown', 'hidden');
+CREATE TYPE screenshot_type AS ENUM ('lyceum', 'olympiad', 'MCKO', 'quota');
 
 CREATE TABLE IF NOT EXISTS public.statuses
 (
@@ -78,10 +79,11 @@ VALUES (1, 1, 9),
 
 CREATE TABLE IF NOT EXISTS public.user_screenshots
 (
-    user_id        bigint   NOT NULL REFERENCES users (id),
-    education_year smallint NOT NULL,
-    original_name  text     NOT NULL,
-    file_name      text     NOT NULL,
+    user_id        bigint          NOT NULL REFERENCES users (id),
+    education_year smallint        NOT NULL,
+    original_name  text            NOT NULL,
+    file_name      text            NOT NULL,
+    type           screenshot_type NOT NULL,
     PRIMARY KEY (user_id, education_year)
 );
 

@@ -125,6 +125,11 @@ func (u *Usecase) GetUser(ctx context.Context, userId int64) (tpportal.GetUserRe
 				tpportal.UserTestDateRels.TestDate,
 			),
 		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserScreenshots,
+			),
+		),
 	).One(ctx, u.st.DBSX())
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -203,6 +208,18 @@ func (u *Usecase) GetUser(ctx context.Context, userId int64) (tpportal.GetUserRe
 				testDate.EducationYear = int64(utd.R.TestDate.EducationYear)
 				testDate.PubStatus = utd.R.TestDate.PubStatus.String()
 				testDate.IsAttended = utd.IsAttended
+				break
+			}
+		}
+	}
+
+	screen := tpportal.GetUserResponseScreenshot{}
+	if len(user.R.UserScreenshots) != 0 {
+		for _, us := range user.R.UserScreenshots {
+			if us.EducationYear == user.EducationYear {
+				screen.FileName = us.OriginalName
+				screen.ScreenshotType = us.Type.String()
+				break
 			}
 		}
 	}
@@ -239,6 +256,7 @@ func (u *Usecase) GetUser(ctx context.Context, userId int64) (tpportal.GetUserRe
 		SecondProfileSubject: secondProfileSubject,
 		ForeignLanguage:      foreignLanguage,
 		TestDate:             testDate,
+		Screenshot:           screen,
 		IsActivated:          user.IsActivated,
 	}
 
@@ -346,6 +364,32 @@ func (u *Usecase) UploadScreenshot(ctx context.Context, req tpportal.UploadScree
 	if err != nil {
 		return err
 	}
+
+	oldUs, err := tpportal.UserScreenshots(
+		tpportal.UserScreenshotWhere.UserID.EQ(user.ID),
+	).One(ctx, u.st.DBSX())
+	if err != nil && err != sql.ErrNoRows {
+		return errs.NewInternal(err)
+	}
+
+	if oldUs != nil && oldUs.FileName != "" {
+		err = u.st.QueryTx(ctx, func(tx *sqlx.Tx) error {
+			fileKey := oldUs.FileName
+			_, err = oldUs.Delete(ctx, tx)
+			if err != nil {
+				return errs.NewInternal(err)
+			}
+			err = u.s3.DeleteFile(ctx, fileKey)
+			if err != nil {
+				return errs.NewInternal(err)
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
+
 	fileNameS3 := uuid.New().String()
 	uploadFileReq := tpportal.UploadFileRequest{
 		FileKey:     fileNameS3,
@@ -371,6 +415,7 @@ func (u *Usecase) UploadScreenshot(ctx context.Context, req tpportal.UploadScree
 		EducationYear: user.EducationYear,
 		OriginalName:  req.FileName,
 		FileName:      key,
+		Type:          tpportal.ScreenshotType(req.ScreenshotType),
 	}
 
 	err = u.st.QueryTx(ctx, func(tx *sqlx.Tx) error {
@@ -487,6 +532,11 @@ func (u *Usecase) ListUsers(ctx context.Context, req tpportal.UserFilter) ([]tpp
 				tpportal.UserTestDateRels.TestDate,
 			),
 		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserScreenshots,
+			),
+		),
 	).All(ctx, u.st.DBSX())
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -571,10 +621,35 @@ func (u *Usecase) ListUsers(ctx context.Context, req tpportal.UserFilter) ([]tpp
 			}
 		}
 
+		screen := tpportal.GetUserResponseScreenshot{}
+		if len(user.R.UserScreenshots) != 0 {
+			for _, us := range user.R.UserScreenshots {
+				if us.EducationYear == user.EducationYear {
+					screen.FileName = us.OriginalName
+					screen.ScreenshotType = us.Type.String()
+					break
+				}
+			}
+		}
+
+		var shortFio string
+		if user.Fio != "" {
+			fioParts := strings.Split(user.Fio, " ")
+			switch len(fioParts) {
+			case 3:
+				shortFio = fioParts[0] + " " + string([]rune(fioParts[1])[0]) + "." + string([]rune(fioParts[2])[0]) + "."
+			case 2:
+				shortFio = fioParts[0] + " " + string([]rune(fioParts[1])[0]) + "."
+			default:
+				shortFio = user.Fio
+			}
+		}
+
 		item := tpportal.GetUserResponse{
 			Id:                   user.ID,
 			Role:                 user.Role.String(),
 			Fio:                  user.Fio,
+			ShortFIO:             shortFio,
 			DateOfBirth:          u.formatDate(user.DateOfBirth),
 			Gender:               user.Gender.String(),
 			Email:                user.Email,
@@ -589,6 +664,7 @@ func (u *Usecase) ListUsers(ctx context.Context, req tpportal.UserFilter) ([]tpp
 			SecondProfileSubject: secondProfileSubject,
 			ForeignLanguage:      foreignLanguage,
 			TestDate:             testDate,
+			Screenshot:           screen,
 			IsActivated:          user.IsActivated,
 		}
 

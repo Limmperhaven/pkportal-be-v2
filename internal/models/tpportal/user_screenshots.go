@@ -23,10 +23,11 @@ import (
 
 // UserScreenshot is an object representing the database table.
 type UserScreenshot struct {
-	UserID        int64  `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
-	EducationYear int16  `boil:"education_year" json:"education_year" toml:"education_year" yaml:"education_year"`
-	OriginalName  string `boil:"original_name" json:"original_name" toml:"original_name" yaml:"original_name"`
-	FileName      string `boil:"file_name" json:"file_name" toml:"file_name" yaml:"file_name"`
+	UserID        int64          `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
+	EducationYear int16          `boil:"education_year" json:"education_year" toml:"education_year" yaml:"education_year"`
+	OriginalName  string         `boil:"original_name" json:"original_name" toml:"original_name" yaml:"original_name"`
+	FileName      string         `boil:"file_name" json:"file_name" toml:"file_name" yaml:"file_name"`
+	Type          ScreenshotType `boil:"type" json:"type" toml:"type" yaml:"type"`
 
 	R *userScreenshotR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userScreenshotL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -37,11 +38,13 @@ var UserScreenshotColumns = struct {
 	EducationYear string
 	OriginalName  string
 	FileName      string
+	Type          string
 }{
 	UserID:        "user_id",
 	EducationYear: "education_year",
 	OriginalName:  "original_name",
 	FileName:      "file_name",
+	Type:          "type",
 }
 
 var UserScreenshotTableColumns = struct {
@@ -49,25 +52,64 @@ var UserScreenshotTableColumns = struct {
 	EducationYear string
 	OriginalName  string
 	FileName      string
+	Type          string
 }{
 	UserID:        "user_screenshots.user_id",
 	EducationYear: "user_screenshots.education_year",
 	OriginalName:  "user_screenshots.original_name",
 	FileName:      "user_screenshots.file_name",
+	Type:          "user_screenshots.type",
 }
 
 // Generated where
+
+type whereHelperScreenshotType struct{ field string }
+
+func (w whereHelperScreenshotType) EQ(x ScreenshotType) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.EQ, x)
+}
+func (w whereHelperScreenshotType) NEQ(x ScreenshotType) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.NEQ, x)
+}
+func (w whereHelperScreenshotType) LT(x ScreenshotType) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelperScreenshotType) LTE(x ScreenshotType) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelperScreenshotType) GT(x ScreenshotType) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelperScreenshotType) GTE(x ScreenshotType) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+func (w whereHelperScreenshotType) IN(slice []ScreenshotType) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
+}
+func (w whereHelperScreenshotType) NIN(slice []ScreenshotType) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
+}
 
 var UserScreenshotWhere = struct {
 	UserID        whereHelperint64
 	EducationYear whereHelperint16
 	OriginalName  whereHelperstring
 	FileName      whereHelperstring
+	Type          whereHelperScreenshotType
 }{
 	UserID:        whereHelperint64{field: "\"user_screenshots\".\"user_id\""},
 	EducationYear: whereHelperint16{field: "\"user_screenshots\".\"education_year\""},
 	OriginalName:  whereHelperstring{field: "\"user_screenshots\".\"original_name\""},
 	FileName:      whereHelperstring{field: "\"user_screenshots\".\"file_name\""},
+	Type:          whereHelperScreenshotType{field: "\"user_screenshots\".\"type\""},
 }
 
 // UserScreenshotRels is where relationship names are stored.
@@ -98,8 +140,8 @@ func (r *userScreenshotR) GetUser() *User {
 type userScreenshotL struct{}
 
 var (
-	userScreenshotAllColumns            = []string{"user_id", "education_year", "original_name", "file_name"}
-	userScreenshotColumnsWithoutDefault = []string{"user_id", "education_year", "original_name", "file_name"}
+	userScreenshotAllColumns            = []string{"user_id", "education_year", "original_name", "file_name", "type"}
+	userScreenshotColumnsWithoutDefault = []string{"user_id", "education_year", "original_name", "file_name", "type"}
 	userScreenshotColumnsWithDefault    = []string{}
 	userScreenshotPrimaryKeyColumns     = []string{"user_id", "education_year"}
 	userScreenshotGeneratedColumns      = []string{}

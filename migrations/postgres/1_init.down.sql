@@ -13,6 +13,7 @@ DROP TABLE IF EXISTS public.user_statuses;
 DROP TABLE IF EXISTS public.users;
 DROP TABLE IF EXISTS public.statuses;
 
+DROP TYPE IF EXISTS screenshot_type;
 DROP TYPE IF EXISTS user_role;
 DROP TYPE IF EXISTS user_gender;
 DROP TYPE IF EXISTS test_date_pub_status;
