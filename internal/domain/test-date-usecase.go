@@ -211,10 +211,19 @@ func (u *Usecase) SignUpUserToTestDate(ctx context.Context, userId, tdId int64, 
 		}
 	}
 
+	firstProfileSet := false
+	secondProfileSet := false
+
 	if user.R.UserProfiles != nil {
 		valid := false
 		for _, up := range user.R.UserProfiles {
 			if up.UserEducationYear == user.EducationYear {
+				if up.FirstProfileID.Valid {
+					firstProfileSet = true
+				}
+				if up.SecondProfileID.Valid {
+					secondProfileSet = true
+				}
 				valid = true
 				break
 			}
@@ -229,15 +238,21 @@ func (u *Usecase) SignUpUserToTestDate(ctx context.Context, userId, tdId int64, 
 		valid := false
 		for _, ups := range user.R.UserProfileSubjects {
 			if ups.UserEducationYear == user.EducationYear {
+				if ups.R.FirstProfileSubject == nil && firstProfileSet {
+					return errs.NewBadRequest(errors.New("для записи на тестирование установите предмет 1 профиля"))
+				}
+				if ups.R.SecondProfileSubject == nil && secondProfileSet {
+					return errs.NewBadRequest(errors.New("для записи на тестирование установите предмет 2 профиля"))
+				}
 				valid = true
 				break
 			}
 		}
 		if !valid {
-			return errs.NewBadRequest(errors.New("для записи на тестирование выберите профильные предмет для указанных профилей"))
+			return errs.NewBadRequest(errors.New("для записи на тестирование выберите профильные предметы для указанных профилей"))
 		}
 	} else {
-		return errs.NewBadRequest(errors.New("для записи на тестирование выберите профильные предмет для указанных профилей"))
+		return errs.NewBadRequest(errors.New("для записи на тестирование выберите профильные предметы для указанных профилей"))
 	}
 	if user.R.UserForeignLanguages != nil {
 		valid := false
