@@ -20,11 +20,10 @@ type App struct {
 }
 
 type Server struct {
-	Scheme       string `yaml:"scheme"`
-	Host         string `yaml:"host"`
-	Port         string `yaml:"port"`
-	Domain       string `yaml:"domain"`
-	ServerDomain string `yaml:"server_domain"`
+	Scheme string `yaml:"scheme"`
+	Host   string `yaml:"host"`
+	Port   string `yaml:"port"`
+	Domain string `yaml:"domain"`
 }
 
 type Postgres struct {

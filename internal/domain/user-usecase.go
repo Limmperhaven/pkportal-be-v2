@@ -828,7 +828,7 @@ func (u *Usecase) ResendActivationEmail(ctx context.Context) error {
 	}
 	fmt.Println(user.Email)
 	cfg := config.Get().Server
-	activationLink := cfg.ServerDomain + "/auth/activate/" + user.ActivationToken
+	activationLink := cfg.Domain + "/auth/activate/" + user.ActivationToken
 	err = u.mail.SendTextEmail(body.CreateAccountSubject, body.CreateAccountMessage+activationLink, []string{user.Email})
 	if err != nil {
 		return errs.NewInternal(err)

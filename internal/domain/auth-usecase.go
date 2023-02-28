@@ -59,7 +59,7 @@ func (u *Usecase) SignUp(ctx context.Context, req *tpportal.SignUpRequest) error
 	}
 
 	cfg := config.Get().Server
-	activationLink := cfg.ServerDomain + "/auth/activate/" + user.ActivationToken
+	activationLink := cfg.Domain + "/auth/activate/" + user.ActivationToken
 
 	err = u.st.QueryTx(ctx, func(tx *sqlx.Tx) error {
 		err = user.Insert(ctx, tx, boil.Infer())
@@ -187,8 +187,8 @@ func (u *Usecase) RecoverPassword(ctx context.Context, email string) error {
 		return errs.NewInternal(err)
 	}
 
-	cfg := config.Get().Server
-	url := cfg.Domain + "/setPassword/" + user.ChangePasswordToken
+	cfg := config.Get().App
+	url := cfg.FrontendUrl + "/setPassword/" + user.ChangePasswordToken
 
 	err = u.mail.SendTextEmail(body.RecoverPasswordSubject, body.RecoverPasswordMessage+url, []string{user.Email})
 	if err != nil {
