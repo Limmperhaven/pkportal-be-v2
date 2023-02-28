@@ -801,6 +801,9 @@ func (u *Usecase) filterUsers(ctx context.Context, req tpportal.UserFilter) ([]i
 }
 
 func (u *Usecase) SetUserRole(ctx context.Context, userId int64, role string) error {
+	if userId == 1 {
+		return errs.NewBadRequest(errors.New("не возможно изменить роль главного администратора"))
+	}
 	user, err := tpportal.FindUser(ctx, u.st.DBSX(), userId)
 	if err != nil {
 		if err == sql.ErrNoRows {
