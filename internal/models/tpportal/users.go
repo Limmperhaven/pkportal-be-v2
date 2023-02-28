@@ -24,87 +24,97 @@ import (
 
 // User is an object representing the database table.
 type User struct {
-	ID                  int64       `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Email               string      `boil:"email" json:"email" toml:"email" yaml:"email"`
-	HashPassword        string      `boil:"hash_password" json:"hash_password" toml:"hash_password" yaml:"hash_password"`
-	Fio                 string      `boil:"fio" json:"fio" toml:"fio" yaml:"fio"`
-	DateOfBirth         time.Time   `boil:"date_of_birth" json:"date_of_birth" toml:"date_of_birth" yaml:"date_of_birth"`
-	Gender              UserGender  `boil:"gender" json:"gender" toml:"gender" yaml:"gender"`
-	PhoneNumber         string      `boil:"phone_number" json:"phone_number" toml:"phone_number" yaml:"phone_number"`
-	ParentPhoneNumber   string      `boil:"parent_phone_number" json:"parent_phone_number" toml:"parent_phone_number" yaml:"parent_phone_number"`
-	CurrentSchool       null.String `boil:"current_school" json:"current_school,omitempty" toml:"current_school" yaml:"current_school,omitempty"`
-	EducationYear       int16       `boil:"education_year" json:"education_year" toml:"education_year" yaml:"education_year"`
-	IsActivated         bool        `boil:"is_activated" json:"is_activated" toml:"is_activated" yaml:"is_activated"`
-	ActivationToken     string      `boil:"activation_token" json:"activation_token" toml:"activation_token" yaml:"activation_token"`
-	ChangePasswordToken string      `boil:"change_password_token" json:"change_password_token" toml:"change_password_token" yaml:"change_password_token"`
-	Role                UserRole    `boil:"role" json:"role" toml:"role" yaml:"role"`
+	ID                         int64       `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Email                      string      `boil:"email" json:"email" toml:"email" yaml:"email"`
+	HashPassword               string      `boil:"hash_password" json:"hash_password" toml:"hash_password" yaml:"hash_password"`
+	Fio                        string      `boil:"fio" json:"fio" toml:"fio" yaml:"fio"`
+	DateOfBirth                time.Time   `boil:"date_of_birth" json:"date_of_birth" toml:"date_of_birth" yaml:"date_of_birth"`
+	Gender                     UserGender  `boil:"gender" json:"gender" toml:"gender" yaml:"gender"`
+	PhoneNumber                string      `boil:"phone_number" json:"phone_number" toml:"phone_number" yaml:"phone_number"`
+	ParentPhoneNumber          string      `boil:"parent_phone_number" json:"parent_phone_number" toml:"parent_phone_number" yaml:"parent_phone_number"`
+	CurrentSchool              null.String `boil:"current_school" json:"current_school,omitempty" toml:"current_school" yaml:"current_school,omitempty"`
+	EducationYear              int16       `boil:"education_year" json:"education_year" toml:"education_year" yaml:"education_year"`
+	IsActivated                bool        `boil:"is_activated" json:"is_activated" toml:"is_activated" yaml:"is_activated"`
+	ActivationToken            string      `boil:"activation_token" json:"activation_token" toml:"activation_token" yaml:"activation_token"`
+	ChangePasswordToken        string      `boil:"change_password_token" json:"change_password_token" toml:"change_password_token" yaml:"change_password_token"`
+	LastChangePasswordMailSent null.Time   `boil:"last_change_password_mail_sent" json:"last_change_password_mail_sent,omitempty" toml:"last_change_password_mail_sent" yaml:"last_change_password_mail_sent,omitempty"`
+	LastActivationMailSent     null.Time   `boil:"last_activation_mail_sent" json:"last_activation_mail_sent,omitempty" toml:"last_activation_mail_sent" yaml:"last_activation_mail_sent,omitempty"`
+	Role                       UserRole    `boil:"role" json:"role" toml:"role" yaml:"role"`
 
 	R *userR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var UserColumns = struct {
-	ID                  string
-	Email               string
-	HashPassword        string
-	Fio                 string
-	DateOfBirth         string
-	Gender              string
-	PhoneNumber         string
-	ParentPhoneNumber   string
-	CurrentSchool       string
-	EducationYear       string
-	IsActivated         string
-	ActivationToken     string
-	ChangePasswordToken string
-	Role                string
+	ID                         string
+	Email                      string
+	HashPassword               string
+	Fio                        string
+	DateOfBirth                string
+	Gender                     string
+	PhoneNumber                string
+	ParentPhoneNumber          string
+	CurrentSchool              string
+	EducationYear              string
+	IsActivated                string
+	ActivationToken            string
+	ChangePasswordToken        string
+	LastChangePasswordMailSent string
+	LastActivationMailSent     string
+	Role                       string
 }{
-	ID:                  "id",
-	Email:               "email",
-	HashPassword:        "hash_password",
-	Fio:                 "fio",
-	DateOfBirth:         "date_of_birth",
-	Gender:              "gender",
-	PhoneNumber:         "phone_number",
-	ParentPhoneNumber:   "parent_phone_number",
-	CurrentSchool:       "current_school",
-	EducationYear:       "education_year",
-	IsActivated:         "is_activated",
-	ActivationToken:     "activation_token",
-	ChangePasswordToken: "change_password_token",
-	Role:                "role",
+	ID:                         "id",
+	Email:                      "email",
+	HashPassword:               "hash_password",
+	Fio:                        "fio",
+	DateOfBirth:                "date_of_birth",
+	Gender:                     "gender",
+	PhoneNumber:                "phone_number",
+	ParentPhoneNumber:          "parent_phone_number",
+	CurrentSchool:              "current_school",
+	EducationYear:              "education_year",
+	IsActivated:                "is_activated",
+	ActivationToken:            "activation_token",
+	ChangePasswordToken:        "change_password_token",
+	LastChangePasswordMailSent: "last_change_password_mail_sent",
+	LastActivationMailSent:     "last_activation_mail_sent",
+	Role:                       "role",
 }
 
 var UserTableColumns = struct {
-	ID                  string
-	Email               string
-	HashPassword        string
-	Fio                 string
-	DateOfBirth         string
-	Gender              string
-	PhoneNumber         string
-	ParentPhoneNumber   string
-	CurrentSchool       string
-	EducationYear       string
-	IsActivated         string
-	ActivationToken     string
-	ChangePasswordToken string
-	Role                string
+	ID                         string
+	Email                      string
+	HashPassword               string
+	Fio                        string
+	DateOfBirth                string
+	Gender                     string
+	PhoneNumber                string
+	ParentPhoneNumber          string
+	CurrentSchool              string
+	EducationYear              string
+	IsActivated                string
+	ActivationToken            string
+	ChangePasswordToken        string
+	LastChangePasswordMailSent string
+	LastActivationMailSent     string
+	Role                       string
 }{
-	ID:                  "users.id",
-	Email:               "users.email",
-	HashPassword:        "users.hash_password",
-	Fio:                 "users.fio",
-	DateOfBirth:         "users.date_of_birth",
-	Gender:              "users.gender",
-	PhoneNumber:         "users.phone_number",
-	ParentPhoneNumber:   "users.parent_phone_number",
-	CurrentSchool:       "users.current_school",
-	EducationYear:       "users.education_year",
-	IsActivated:         "users.is_activated",
-	ActivationToken:     "users.activation_token",
-	ChangePasswordToken: "users.change_password_token",
-	Role:                "users.role",
+	ID:                         "users.id",
+	Email:                      "users.email",
+	HashPassword:               "users.hash_password",
+	Fio:                        "users.fio",
+	DateOfBirth:                "users.date_of_birth",
+	Gender:                     "users.gender",
+	PhoneNumber:                "users.phone_number",
+	ParentPhoneNumber:          "users.parent_phone_number",
+	CurrentSchool:              "users.current_school",
+	EducationYear:              "users.education_year",
+	IsActivated:                "users.is_activated",
+	ActivationToken:            "users.activation_token",
+	ChangePasswordToken:        "users.change_password_token",
+	LastChangePasswordMailSent: "users.last_change_password_mail_sent",
+	LastActivationMailSent:     "users.last_activation_mail_sent",
+	Role:                       "users.role",
 }
 
 // Generated where
@@ -182,6 +192,30 @@ func (w whereHelpernull_String) NIN(slice []string) qm.QueryMod {
 func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
 func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
 
+type whereHelpernull_Time struct{ field string }
+
+func (w whereHelpernull_Time) EQ(x null.Time) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_Time) NEQ(x null.Time) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_Time) LT(x null.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_Time) LTE(x null.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_Time) GT(x null.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_Time) GTE(x null.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
+func (w whereHelpernull_Time) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_Time) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+
 type whereHelperUserRole struct{ field string }
 
 func (w whereHelperUserRole) EQ(x UserRole) qm.QueryMod {
@@ -218,35 +252,39 @@ func (w whereHelperUserRole) NIN(slice []UserRole) qm.QueryMod {
 }
 
 var UserWhere = struct {
-	ID                  whereHelperint64
-	Email               whereHelperstring
-	HashPassword        whereHelperstring
-	Fio                 whereHelperstring
-	DateOfBirth         whereHelpertime_Time
-	Gender              whereHelperUserGender
-	PhoneNumber         whereHelperstring
-	ParentPhoneNumber   whereHelperstring
-	CurrentSchool       whereHelpernull_String
-	EducationYear       whereHelperint16
-	IsActivated         whereHelperbool
-	ActivationToken     whereHelperstring
-	ChangePasswordToken whereHelperstring
-	Role                whereHelperUserRole
+	ID                         whereHelperint64
+	Email                      whereHelperstring
+	HashPassword               whereHelperstring
+	Fio                        whereHelperstring
+	DateOfBirth                whereHelpertime_Time
+	Gender                     whereHelperUserGender
+	PhoneNumber                whereHelperstring
+	ParentPhoneNumber          whereHelperstring
+	CurrentSchool              whereHelpernull_String
+	EducationYear              whereHelperint16
+	IsActivated                whereHelperbool
+	ActivationToken            whereHelperstring
+	ChangePasswordToken        whereHelperstring
+	LastChangePasswordMailSent whereHelpernull_Time
+	LastActivationMailSent     whereHelpernull_Time
+	Role                       whereHelperUserRole
 }{
-	ID:                  whereHelperint64{field: "\"users\".\"id\""},
-	Email:               whereHelperstring{field: "\"users\".\"email\""},
-	HashPassword:        whereHelperstring{field: "\"users\".\"hash_password\""},
-	Fio:                 whereHelperstring{field: "\"users\".\"fio\""},
-	DateOfBirth:         whereHelpertime_Time{field: "\"users\".\"date_of_birth\""},
-	Gender:              whereHelperUserGender{field: "\"users\".\"gender\""},
-	PhoneNumber:         whereHelperstring{field: "\"users\".\"phone_number\""},
-	ParentPhoneNumber:   whereHelperstring{field: "\"users\".\"parent_phone_number\""},
-	CurrentSchool:       whereHelpernull_String{field: "\"users\".\"current_school\""},
-	EducationYear:       whereHelperint16{field: "\"users\".\"education_year\""},
-	IsActivated:         whereHelperbool{field: "\"users\".\"is_activated\""},
-	ActivationToken:     whereHelperstring{field: "\"users\".\"activation_token\""},
-	ChangePasswordToken: whereHelperstring{field: "\"users\".\"change_password_token\""},
-	Role:                whereHelperUserRole{field: "\"users\".\"role\""},
+	ID:                         whereHelperint64{field: "\"users\".\"id\""},
+	Email:                      whereHelperstring{field: "\"users\".\"email\""},
+	HashPassword:               whereHelperstring{field: "\"users\".\"hash_password\""},
+	Fio:                        whereHelperstring{field: "\"users\".\"fio\""},
+	DateOfBirth:                whereHelpertime_Time{field: "\"users\".\"date_of_birth\""},
+	Gender:                     whereHelperUserGender{field: "\"users\".\"gender\""},
+	PhoneNumber:                whereHelperstring{field: "\"users\".\"phone_number\""},
+	ParentPhoneNumber:          whereHelperstring{field: "\"users\".\"parent_phone_number\""},
+	CurrentSchool:              whereHelpernull_String{field: "\"users\".\"current_school\""},
+	EducationYear:              whereHelperint16{field: "\"users\".\"education_year\""},
+	IsActivated:                whereHelperbool{field: "\"users\".\"is_activated\""},
+	ActivationToken:            whereHelperstring{field: "\"users\".\"activation_token\""},
+	ChangePasswordToken:        whereHelperstring{field: "\"users\".\"change_password_token\""},
+	LastChangePasswordMailSent: whereHelpernull_Time{field: "\"users\".\"last_change_password_mail_sent\""},
+	LastActivationMailSent:     whereHelpernull_Time{field: "\"users\".\"last_activation_mail_sent\""},
+	Role:                       whereHelperUserRole{field: "\"users\".\"role\""},
 }
 
 // UserRels is where relationship names are stored.
@@ -327,9 +365,9 @@ func (r *userR) GetUserTestDates() UserTestDateSlice {
 type userL struct{}
 
 var (
-	userAllColumns            = []string{"id", "email", "hash_password", "fio", "date_of_birth", "gender", "phone_number", "parent_phone_number", "current_school", "education_year", "is_activated", "activation_token", "change_password_token", "role"}
+	userAllColumns            = []string{"id", "email", "hash_password", "fio", "date_of_birth", "gender", "phone_number", "parent_phone_number", "current_school", "education_year", "is_activated", "activation_token", "change_password_token", "last_change_password_mail_sent", "last_activation_mail_sent", "role"}
 	userColumnsWithoutDefault = []string{"email", "hash_password", "fio", "date_of_birth", "gender", "phone_number", "parent_phone_number", "education_year", "activation_token", "change_password_token"}
-	userColumnsWithDefault    = []string{"id", "current_school", "is_activated", "role"}
+	userColumnsWithDefault    = []string{"id", "current_school", "is_activated", "last_change_password_mail_sent", "last_activation_mail_sent", "role"}
 	userPrimaryKeyColumns     = []string{"id"}
 	userGeneratedColumns      = []string{}
 )

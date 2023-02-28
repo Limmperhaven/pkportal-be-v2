@@ -16,6 +16,7 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"strings"
+	"time"
 )
 
 func (u *Usecase) CreateUser(ctx context.Context, req *tpportal.CreateUserRequest) error {
@@ -826,9 +827,16 @@ func (u *Usecase) ResendActivationEmail(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(user.Email)
+	if user.LastActivationMailSent.Time.Add(2 * time.Minute).After(time.Now()) {
+		return errs.NewBadRequest(errors.New("письмо можно отправлять не чаще чем раз в 2 минуты"))
+	}
 	cfg := config.Get().Server
 	activationLink := cfg.Domain + "/auth/activate/" + user.ActivationToken
+	user.LastActivationMailSent = null.TimeFrom(time.Now())
+	_, err = user.Update(ctx, u.st.DBSX(), boil.Whitelist(tpportal.UserColumns.LastActivationMailSent))
+	if err != nil {
+		return errs.NewInternal(err)
+	}
 	err = u.mail.SendTextEmail(body.CreateAccountSubject, body.CreateAccountMessage+activationLink, []string{user.Email})
 	if err != nil {
 		return errs.NewInternal(err)

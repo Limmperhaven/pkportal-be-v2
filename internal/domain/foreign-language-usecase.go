@@ -35,7 +35,7 @@ func (u *Usecase) SetForeignLanguageToUser(ctx context.Context, userId, flId int
 	user, err := tpportal.FindUser(ctx, u.st.DBSX(), userId)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return errs.NewNotFound(fmt.Errorf("пользователь с id: %d не найден", user.ID))
+			return errs.NewNotFound(fmt.Errorf("пользователь с id: %d не найден", userId))
 		}
 		return errs.NewInternal(err)
 	}

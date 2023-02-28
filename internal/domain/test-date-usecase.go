@@ -308,11 +308,6 @@ func (u *Usecase) SignUpUserToTestDate(ctx context.Context, userId, tdId int64, 
 		EducationYear: user.EducationYear,
 		IsAttended:    false,
 	}
-	for i := range user.R.UserStatuses {
-		if user.R.UserStatuses[i].EducationYear == user.EducationYear {
-			user.R.UserStatuses[i].StatusID = body.Registered.Int64()
-		}
-	}
 
 	err = u.st.QueryTx(ctx, func(tx *sqlx.Tx) error {
 		err := utd.Upsert(ctx, tx, true,
@@ -324,7 +319,7 @@ func (u *Usecase) SignUpUserToTestDate(ctx context.Context, userId, tdId int64, 
 		}
 		for _, us := range user.R.UserStatuses {
 			if us.EducationYear == user.EducationYear {
-				us.StatusID = body.Registered.Int64()
+				us.StatusID = body.SignedUpForTest.Int64()
 				_, err = us.Update(ctx, tx, boil.Whitelist(tpportal.UserStatusColumns.StatusID))
 				if err != nil {
 					return errs.NewInternal(err)

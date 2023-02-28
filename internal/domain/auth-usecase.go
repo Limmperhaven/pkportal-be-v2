@@ -37,18 +37,20 @@ func (u *Usecase) SignUp(ctx context.Context, req *tpportal.SignUpRequest) error
 	}
 
 	user := tpportal.User{
-		Email:               req.Email,
-		HashPassword:        hashPassword,
-		Fio:                 req.Fio,
-		DateOfBirth:         dob,
-		Gender:              tpportal.UserGender(req.Gender),
-		PhoneNumber:         req.PhoneNumber,
-		ParentPhoneNumber:   req.ParentPhoneNumber,
-		CurrentSchool:       null.StringFrom(req.CurrentSchool),
-		EducationYear:       int16(req.EducationYear),
-		IsActivated:         false,
-		ActivationToken:     uuid.New().String(),
-		ChangePasswordToken: uuid.New().String(),
+		Email:                      req.Email,
+		HashPassword:               hashPassword,
+		Fio:                        req.Fio,
+		DateOfBirth:                dob,
+		Gender:                     tpportal.UserGender(req.Gender),
+		PhoneNumber:                req.PhoneNumber,
+		ParentPhoneNumber:          req.ParentPhoneNumber,
+		CurrentSchool:              null.StringFrom(req.CurrentSchool),
+		EducationYear:              int16(req.EducationYear),
+		IsActivated:                false,
+		ActivationToken:            uuid.New().String(),
+		ChangePasswordToken:        uuid.New().String(),
+		LastActivationMailSent:     null.Time{Valid: false},
+		LastChangePasswordMailSent: null.Time{Valid: false},
 	}
 
 	var otherEducationYear int16
@@ -186,9 +188,17 @@ func (u *Usecase) RecoverPassword(ctx context.Context, email string) error {
 		}
 		return errs.NewInternal(err)
 	}
+	if user.LastChangePasswordMailSent.Time.Add(2 * time.Minute).After(time.Now()) {
+		return errs.NewBadRequest(errors.New("письмо можно отправлять не чаще чем раз в 2 минуты"))
+	}
 
 	cfg := config.Get().App
 	url := cfg.FrontendUrl + "/setPassword/" + user.ChangePasswordToken
+	user.LastChangePasswordMailSent = null.TimeFrom(time.Now())
+	_, err = user.Update(ctx, u.st.DBSX(), boil.Whitelist(tpportal.UserColumns.LastChangePasswordMailSent))
+	if err != nil {
+		return errs.NewInternal(err)
+	}
 
 	err = u.mail.SendTextEmail(body.RecoverPasswordSubject, body.RecoverPasswordMessage+url, []string{user.Email})
 	if err != nil {
