@@ -19,6 +19,7 @@ type TestDateResponse struct {
 	Time              string
 	Location          string
 	RegisteredPersons int64
+	AttendedPersons   int64
 	MaxPersons        int64
 	EducationYear     int64
 	PubStatus         string

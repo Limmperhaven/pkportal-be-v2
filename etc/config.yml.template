@@ -6,7 +6,8 @@ server:
   scheme: http
   host: localhost
   port: 5000
-  domain: localhost
+  domain: http://localhost:8080
+  server_domain: http://localhost:5000
 
 psql:
   host: localhost
@@ -21,15 +22,15 @@ psql:
   max_open_conns: 50
 
 s3:
-  host: localhost:9090
-  access_key: eG515IVOh0s6ruKR
-  secret_key: WjNPEexwxCvyqjxTyaVwrGkf58I4Nk6I
+  host: localhost:9000
+  access_key: pkportaladmin
+  secret_key: pkportaladmin!
   bucket_name: pkportal-screenshots
   server_location: us-west-2
   use_ssl: false
 
 smtp:
-  address: "user1@pkportaldev.space"
-  host: "mail.pkportaldev.space"
+  address: "noreply@pkportaldev.space"
+  host: "smtp.mail.ru"
   port: "587"
-  password: "Gxtkjtl03@"
+  password: "uiFGF16yfveSTwvWg7rf"

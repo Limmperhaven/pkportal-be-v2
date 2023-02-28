@@ -19,6 +19,7 @@ type TestDateResponse struct {
 	Time              string `json:"time"`
 	Location          string `json:"location"`
 	RegisteredPersons int64  `json:"registered_persons"`
+	AttendedPersons   int64  `json:"attended_persons"`
 	MaxPersons        int64  `json:"max_persons"`
 	EducationYear     int64  `json:"education_year"`
 	PubStatus         string `json:"pub_status"`

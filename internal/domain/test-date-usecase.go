@@ -69,9 +69,14 @@ func (u *Usecase) GetTestDate(ctx context.Context, tdId int64) (tpportal.TestDat
 
 	tdDate, tdTime := u.formatDateTime(td.DateTime)
 
-	var regPersons int64
+	var regPersons, attendedPersons int64
 	if td.R.UserTestDates != nil {
 		regPersons = int64(len(td.R.UserTestDates))
+		for _, utd := range td.R.UserTestDates {
+			if utd.IsAttended {
+				attendedPersons++
+			}
+		}
 	}
 
 	res := tpportal.TestDateResponse{
@@ -79,6 +84,7 @@ func (u *Usecase) GetTestDate(ctx context.Context, tdId int64) (tpportal.TestDat
 		Date:              tdDate,
 		Time:              tdTime,
 		Location:          td.Location,
+		AttendedPersons:   attendedPersons,
 		RegisteredPersons: regPersons,
 		MaxPersons:        int64(td.MaxPersons),
 		EducationYear:     int64(td.EducationYear),
@@ -130,9 +136,14 @@ func (u *Usecase) ListTestDates(ctx context.Context, filter tpportal.ListTestDat
 		}
 		date, time := u.formatDateTime(td.DateTime)
 
-		var regPersons int64
+		var regPersons, attendedPersons int64
 		if td.R.UserTestDates != nil {
 			regPersons = int64(len(td.R.UserTestDates))
+			for _, utd := range td.R.UserTestDates {
+				if utd.IsAttended {
+					attendedPersons++
+				}
+			}
 		}
 
 		res = append(res, tpportal.TestDateResponse{
@@ -141,6 +152,7 @@ func (u *Usecase) ListTestDates(ctx context.Context, filter tpportal.ListTestDat
 			Time:              time,
 			Location:          td.Location,
 			RegisteredPersons: regPersons,
+			AttendedPersons:   attendedPersons,
 			MaxPersons:        int64(td.MaxPersons),
 			EducationYear:     int64(td.EducationYear),
 			PubStatus:         td.PubStatus.String(),
@@ -564,8 +576,8 @@ func (u *Usecase) DownloadRegistrationList(ctx context.Context, tdId int64) (tpp
 	page.EnableLocalFileAccess.Set(true)
 	pdfg.AddPage(page)
 
-	pdfg.MarginLeft.Set(0)
-	pdfg.MarginRight.Set(0)
+	pdfg.MarginLeft.Set(15)
+	pdfg.MarginRight.Set(15)
 	pdfg.Dpi.Set(300)
 	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
 	pdfg.Orientation.Set(wkhtmltopdf.OrientationPortrait)
@@ -667,7 +679,7 @@ func (u *Usecase) ExportTestDateToXlsx(ctx context.Context, tdId int64) (tpporta
 	f.SetCellValue("Sheet1", "I1", "Иностранный язык")
 	f.SetCellValue("Sheet1", "J1", "Школа")
 	f.SetCellValue("Sheet1", "K1", "Номер телефона")
-	f.SetCellValue("Sheet1", "L1", "Номер телефона родителей")
+	f.SetCellValue("Sheet1", "L1", "Номер телефона законного представителя")
 	f.SetCellValue("Sheet1", "M1", "Статус")
 
 	if td.R.UserTestDates != nil {

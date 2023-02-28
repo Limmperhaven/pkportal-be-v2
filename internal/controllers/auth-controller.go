@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/Limmperhaven/pkportal-be-v2/internal/config"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/controllers/response"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/mapper"
@@ -57,7 +58,8 @@ func (s *ControllerStorage) ActivateAccount(c *gin.Context) {
 		response.NewErrorResponse(c, err)
 		return
 	}
-	c.Status(http.StatusOK)
+	cfg := config.Get().Server
+	c.Redirect(http.StatusOK, cfg.Domain+"/profile")
 }
 
 func (s *ControllerStorage) ConfirmRecover(c *gin.Context) {

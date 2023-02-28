@@ -28,6 +28,7 @@ func NewTestDateResponseToRest(in *tpportal.TestDateResponse) *restmodels.TestDa
 		Date:              in.Date,
 		Time:              in.Time,
 		Location:          in.Location,
+		AttendedPersons:   in.AttendedPersons,
 		RegisteredPersons: in.RegisteredPersons,
 		MaxPersons:        in.MaxPersons,
 		EducationYear:     in.EducationYear,

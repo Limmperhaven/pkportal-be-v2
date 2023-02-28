@@ -59,7 +59,7 @@ func (u *Usecase) SignUp(ctx context.Context, req *tpportal.SignUpRequest) error
 	}
 
 	cfg := config.Get().Server
-	activationLink := cfg.Scheme + "://" + cfg.Domain + "/auth/activate/" + user.ActivationToken
+	activationLink := cfg.ServerDomain + "/auth/activate/" + user.ActivationToken
 
 	err = u.st.QueryTx(ctx, func(tx *sqlx.Tx) error {
 		err = user.Insert(ctx, tx, boil.Infer())
