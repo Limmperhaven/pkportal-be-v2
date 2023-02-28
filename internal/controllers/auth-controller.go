@@ -58,8 +58,8 @@ func (s *ControllerStorage) ActivateAccount(c *gin.Context) {
 		response.NewErrorResponse(c, err)
 		return
 	}
-	cfg := config.Get().Server
-	c.Redirect(http.StatusFound, cfg.Domain+"/profile")
+	cfg := config.Get().App
+	c.Redirect(http.StatusFound, cfg.FrontendUrl+"/profile")
 }
 
 func (s *ControllerStorage) ConfirmRecover(c *gin.Context) {
