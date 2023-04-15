@@ -20,7 +20,7 @@ services:
     networks:
       - net
   pkportal-be:
-    image: pkportal-be:0.5
+    image: limmperhaven/pkportal-be:0.5
     ports:
       - "5000:5000"
     volumes:

@@ -15,6 +15,7 @@ import (
 )
 
 type Server struct {
+	cfg    *config.Server
 	server http.Server
 	ch     chan os.Signal
 }
@@ -23,6 +24,7 @@ func NewServer(cfg *config.Server, c *controllers.ControllerStorage, m *middlewa
 	router := gin.Default()
 	initRoutes(router, c, m)
 	handler := initCors(router)
+
 	return &Server{
 		server: http.Server{
 			Addr:    cfg.Host + ":" + cfg.Port,
@@ -31,13 +33,15 @@ func NewServer(cfg *config.Server, c *controllers.ControllerStorage, m *middlewa
 			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 10 * time.Second,
 		},
-		ch: make(chan os.Signal, 1),
+		ch:  make(chan os.Signal, 1),
+		cfg: cfg,
 	}
 }
 
 func (s *Server) Run() {
 	go func() {
-		err := s.server.ListenAndServe()
+		err := s.server.ListenAndServeTLS(s.cfg.SSLCertPath, s.cfg.SSLKeyPath)
+		//err := s.server.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
 			log.Fatalf("There's an error with the server: %s", err.Error())
 		}

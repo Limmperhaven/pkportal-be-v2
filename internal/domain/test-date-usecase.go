@@ -364,7 +364,15 @@ func (u *Usecase) SignUpUserToTestDate(ctx context.Context, userId, tdId int64, 
 	}
 
 	tdDate, tdTime := u.formatDateTime(td.DateTime)
-	emailMessage := fmt.Sprintf(body.SignUpForTestDateMessage, tdDate, td.Location,
+
+	var emailBody string
+	if user.EducationYear == 9 {
+		emailBody = body.SignUpForTestDateMessage9Year
+	} else {
+		emailBody = body.SignUpForTestDateMessage10Year
+	}
+
+	emailMessage := fmt.Sprintf(emailBody, tdDate, td.Location,
 		tdTime, userProfilesString, userProfileSubjectsString)
 
 	err = u.mail.SendTextEmail(body.SignUpForTestDateSubject, emailMessage, []string{user.Email})
