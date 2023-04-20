@@ -76,6 +76,30 @@ func (u *Usecase) SetProfilesToUser(ctx context.Context, req tpportal.SetProfile
 		return errs.NewBadRequest(errors.New("невозможно установить второй профиль, не установив первый"))
 	}
 
+	firstProfile, err := tpportal.FindProfile(ctx, u.st.DBSX(), req.FirstProfileId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return errs.NewNotFound(fmt.Errorf("профиль с id %d не найден", req.FirstProfileId))
+		}
+		return errs.NewInternal(err)
+	}
+
+	if firstProfile.EducationYear != user.EducationYear {
+		return errs.NewBadRequest(errors.New("профиль 1 не соответствует выбранному году обучения"))
+	}
+
+	secondProfile, err := tpportal.FindProfile(ctx, u.st.DBSX(), req.SecondProfileId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return errs.NewNotFound(fmt.Errorf("профиль с id %d не найден", req.SecondProfileId))
+		}
+		return errs.NewInternal(err)
+	}
+
+	if secondProfile.EducationYear != user.EducationYear {
+		return errs.NewBadRequest(errors.New("профиль 2 не соответствует выбранному году обучения"))
+	}
+
 	up := tpportal.UserProfile{
 		UserID:            user.ID,
 		UserEducationYear: user.EducationYear,

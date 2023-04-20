@@ -111,7 +111,7 @@ var (
 	userTestDateAllColumns            = []string{"user_id", "test_date_id", "education_year", "is_attended"}
 	userTestDateColumnsWithoutDefault = []string{"user_id", "test_date_id", "education_year"}
 	userTestDateColumnsWithDefault    = []string{"is_attended"}
-	userTestDatePrimaryKeyColumns     = []string{"user_id", "education_year"}
+	userTestDatePrimaryKeyColumns     = []string{"user_id", "test_date_id"}
 	userTestDateGeneratedColumns      = []string{}
 )
 
@@ -671,7 +671,7 @@ func (o *UserTestDate) SetTestDate(ctx context.Context, exec boil.ContextExecuto
 		strmangle.SetParamNames("\"", "\"", 1, []string{"test_date_id"}),
 		strmangle.WhereClause("\"", "\"", 2, userTestDatePrimaryKeyColumns),
 	)
-	values := []interface{}{related.ID, o.UserID, o.EducationYear}
+	values := []interface{}{related.ID, o.UserID, o.TestDateID}
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -718,7 +718,7 @@ func (o *UserTestDate) SetUser(ctx context.Context, exec boil.ContextExecutor, i
 		strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
 		strmangle.WhereClause("\"", "\"", 2, userTestDatePrimaryKeyColumns),
 	)
-	values := []interface{}{related.ID, o.UserID, o.EducationYear}
+	values := []interface{}{related.ID, o.UserID, o.TestDateID}
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -762,7 +762,7 @@ func UserTestDates(mods ...qm.QueryMod) userTestDateQuery {
 
 // FindUserTestDate retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindUserTestDate(ctx context.Context, exec boil.ContextExecutor, userID int64, educationYear int16, selectCols ...string) (*UserTestDate, error) {
+func FindUserTestDate(ctx context.Context, exec boil.ContextExecutor, userID int64, testDateID int64, selectCols ...string) (*UserTestDate, error) {
 	userTestDateObj := &UserTestDate{}
 
 	sel := "*"
@@ -770,10 +770,10 @@ func FindUserTestDate(ctx context.Context, exec boil.ContextExecutor, userID int
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from \"user_test_dates\" where \"user_id\"=$1 AND \"education_year\"=$2", sel,
+		"select %s from \"user_test_dates\" where \"user_id\"=$1 AND \"test_date_id\"=$2", sel,
 	)
 
-	q := queries.Raw(query, userID, educationYear)
+	q := queries.Raw(query, userID, testDateID)
 
 	err := q.Bind(ctx, exec, userTestDateObj)
 	if err != nil {
@@ -1125,7 +1125,7 @@ func (o *UserTestDate) Delete(ctx context.Context, exec boil.ContextExecutor) (i
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), userTestDatePrimaryKeyMapping)
-	sql := "DELETE FROM \"user_test_dates\" WHERE \"user_id\"=$1 AND \"education_year\"=$2"
+	sql := "DELETE FROM \"user_test_dates\" WHERE \"user_id\"=$1 AND \"test_date_id\"=$2"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1222,7 +1222,7 @@ func (o UserTestDateSlice) DeleteAll(ctx context.Context, exec boil.ContextExecu
 // Reload refetches the object from the database
 // using the primary keys with an executor.
 func (o *UserTestDate) Reload(ctx context.Context, exec boil.ContextExecutor) error {
-	ret, err := FindUserTestDate(ctx, exec, o.UserID, o.EducationYear)
+	ret, err := FindUserTestDate(ctx, exec, o.UserID, o.TestDateID)
 	if err != nil {
 		return err
 	}
@@ -1261,16 +1261,16 @@ func (o *UserTestDateSlice) ReloadAll(ctx context.Context, exec boil.ContextExec
 }
 
 // UserTestDateExists checks if the UserTestDate row exists.
-func UserTestDateExists(ctx context.Context, exec boil.ContextExecutor, userID int64, educationYear int16) (bool, error) {
+func UserTestDateExists(ctx context.Context, exec boil.ContextExecutor, userID int64, testDateID int64) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from \"user_test_dates\" where \"user_id\"=$1 AND \"education_year\"=$2 limit 1)"
+	sql := "select exists(select 1 from \"user_test_dates\" where \"user_id\"=$1 AND \"test_date_id\"=$2 limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
 		fmt.Fprintln(writer, sql)
-		fmt.Fprintln(writer, userID, educationYear)
+		fmt.Fprintln(writer, userID, testDateID)
 	}
-	row := exec.QueryRowContext(ctx, sql, userID, educationYear)
+	row := exec.QueryRowContext(ctx, sql, userID, testDateID)
 
 	err := row.Scan(&exists)
 	if err != nil {
@@ -1282,5 +1282,5 @@ func UserTestDateExists(ctx context.Context, exec boil.ContextExecutor, userID i
 
 // Exists checks if the UserTestDate row exists.
 func (o *UserTestDate) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
-	return UserTestDateExists(ctx, exec, o.UserID, o.EducationYear)
+	return UserTestDateExists(ctx, exec, o.UserID, o.TestDateID)
 }

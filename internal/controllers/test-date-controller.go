@@ -101,7 +101,7 @@ func (s *ControllerStorage) SignUpUserToTestDate(c *gin.Context) {
 		response.NewErrorResponse(c, errs.NewBadRequest(fmt.Errorf("невалидный id даты тестирования: %s", tdIdParam)))
 		return
 	}
-	err = s.uc.SignUpUserToTestDate(c, userId, tdId, false)
+	err = s.uc.SignUpUserToTestDate(c, userId, tdId)
 	if err != nil {
 		response.NewErrorResponse(c, err)
 		return
@@ -122,7 +122,7 @@ func (s *ControllerStorage) SignUpMeToTestDate(c *gin.Context) {
 		response.NewErrorResponse(c, errs.NewBadRequest(fmt.Errorf("невалидный id даты тестирования: %s", tdIdParam)))
 		return
 	}
-	err = s.uc.SignUpUserToTestDate(c, userId, tdId, true)
+	err = s.uc.SignUpUserToTestDate(c, userId, tdId)
 	if err != nil {
 		response.NewErrorResponse(c, err)
 		return

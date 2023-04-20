@@ -18,7 +18,7 @@ type GetUserResponse struct {
 	FirstProfileSubject  IdName                    `json:"first_profile_subject"`
 	SecondProfileSubject IdName                    `json:"second_profile_subject"`
 	ForeignLanguage      IdName                    `json:"foreign_language"`
-	TestDate             GetUserResponseTestDate   `json:"test_date"`
+	TestDates            []GetUserResponseTestDate `json:"test_dates"`
 	Screenshot           GetUserResponseScreenshot `json:"screenshot"`
 	IsActivated          bool                      `json:"is_activated"`
 }
@@ -29,14 +29,19 @@ type GetUserResponseScreenshot struct {
 }
 
 type GetUserResponseTestDate struct {
-	Id            int64  `json:"id"`
-	Date          string `json:"date"`
-	Time          string `json:"time"`
-	Location      string `json:"location"`
-	MaxPersons    int64  `json:"max_persons"`
-	EducationYear int64  `json:"education_year"`
-	PubStatus     string `json:"pub_status"`
-	IsAttended    bool   `json:"is_attended"`
+	Id                   int64  `json:"id"`
+	Date                 string `json:"date"`
+	Time                 string `json:"time"`
+	Location             string `json:"location"`
+	MaxPersons           int64  `json:"max_persons"`
+	EducationYear        int64  `json:"education_year"`
+	PubStatus            string `json:"pub_status"`
+	IsAttended           bool   `json:"is_attended"`
+	RussianLanguageGrade int64  `json:"russian_language_grade"`
+	MathGrade            int64  `json:"math_grade"`
+	ForeignLanguageGrade int64  `json:"foreign_language_grade"`
+	FirstProfileGrade    int64  `json:"first_profile_grade"`
+	SecondProfileGrade   int64  `json:"second_profile_grade"`
 }
 
 type ListStatusesRequest struct {

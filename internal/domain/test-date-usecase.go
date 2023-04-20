@@ -161,7 +161,7 @@ func (u *Usecase) ListTestDates(ctx context.Context, filter tpportal.ListTestDat
 	return res, nil
 }
 
-func (u *Usecase) SignUpUserToTestDate(ctx context.Context, userId, tdId int64, dateCheck bool) error {
+func (u *Usecase) SignUpUserToTestDate(ctx context.Context, userId, tdId int64) error {
 	user, err := tpportal.Users(
 		tpportal.UserWhere.ID.EQ(userId),
 		qm.Load(
@@ -198,6 +198,11 @@ func (u *Usecase) SignUpUserToTestDate(ctx context.Context, userId, tdId int64, 
 				tpportal.UserRels.UserForeignLanguages,
 			),
 		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserTestDates,
+			),
+		),
 	).One(ctx, u.st.DBSX())
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -206,21 +211,8 @@ func (u *Usecase) SignUpUserToTestDate(ctx context.Context, userId, tdId int64, 
 		return errs.NewInternal(err)
 	}
 
-	if dateCheck {
-		prevTd, err := tpportal.UserTestDates(
-			tpportal.UserTestDateWhere.UserID.EQ(user.ID),
-			tpportal.UserTestDateWhere.EducationYear.EQ(user.EducationYear),
-			qm.Load(tpportal.UserTestDateRels.TestDate),
-		).One(ctx, u.st.DBSX())
-		if err != nil && err != sql.ErrNoRows {
-			return errs.NewInternal(err)
-		}
-
-		if prevTd != nil && prevTd.R.TestDate != nil {
-			if prevTd.R.TestDate.DateTime.Before(time.Now().Add(3 * 24 * time.Hour)) {
-				return errs.NewBadRequest(errors.New("дату тестирования можно изменять не позднее чем за 3 дня до начала тестирования"))
-			}
-		}
+	if len(user.R.UserTestDates) >= 2 {
+		return errs.NewBadRequest(errors.New("нельзя записаться более чем на 2 тестирования"))
 	}
 
 	firstProfileSet := false
@@ -310,10 +302,7 @@ func (u *Usecase) SignUpUserToTestDate(ctx context.Context, userId, tdId int64, 
 	}
 
 	err = u.st.QueryTx(ctx, func(tx *sqlx.Tx) error {
-		err := utd.Upsert(ctx, tx, true,
-			[]string{tpportal.UserTestDateColumns.UserID, tpportal.UserTestDateColumns.EducationYear},
-			boil.Whitelist(tpportal.UserTestDateColumns.TestDateID, tpportal.UserTestDateColumns.IsAttended),
-			boil.Infer())
+		err := utd.Insert(ctx, tx, boil.Infer())
 		if err != nil {
 			return errs.NewInternal(err)
 		}
@@ -410,7 +399,7 @@ func (u *Usecase) SetTestDateAttended(ctx context.Context, userId, tdId int64, a
 		return errs.NewInternal(err)
 	}
 
-	utd, err := tpportal.FindUserTestDate(ctx, u.st.DBSX(), user.ID, user.EducationYear)
+	utd, err := tpportal.FindUserTestDate(ctx, u.st.DBSX(), user.ID, tdId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return errs.NewNotFound(errors.New("указанная запись на тестирование не найдена"))
