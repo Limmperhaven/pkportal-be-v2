@@ -97,6 +97,7 @@ type GetUserResponseTestDate struct {
 	ForeignLanguageGrade int64
 	FirstProfileGrade    int64
 	SecondProfileGrade   int64
+	HasResults           bool
 }
 
 type ListStatusesRequest struct {

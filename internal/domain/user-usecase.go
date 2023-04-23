@@ -230,7 +230,7 @@ func (u *Usecase) GetUser(ctx context.Context, userId int64) (tpportal.GetUserRe
 		for _, utd := range user.R.UserTestDates {
 			if utd.EducationYear == user.EducationYear {
 				tdDate, tdTime := u.formatDateTime(utd.R.TestDate.DateTime)
-				eResult := examResultMap[utd.TestDateID]
+				eResult, hasResults := examResultMap[utd.TestDateID]
 				testDate := tpportal.GetUserResponseTestDate{
 					Id:                   utd.TestDateID,
 					Date:                 tdDate,
@@ -245,6 +245,7 @@ func (u *Usecase) GetUser(ctx context.Context, userId int64) (tpportal.GetUserRe
 					ForeignLanguageGrade: eResult.ForeignLanguageGrade,
 					FirstProfileGrade:    eResult.FirstProfileGrade,
 					SecondProfileGrade:   eResult.SecondProfileGrade,
+					HasResults:           hasResults,
 				}
 				testDates = append(testDates, testDate)
 			}
@@ -677,7 +678,7 @@ func (u *Usecase) ListUsers(ctx context.Context, req tpportal.UserFilter) ([]tpp
 			for _, utd := range user.R.UserTestDates {
 				if utd.EducationYear == user.EducationYear {
 					tdDate, tdTime := u.formatDateTime(utd.R.TestDate.DateTime)
-					eResult := examResultMap[utd.TestDateID]
+					eResult, hasResults := examResultMap[utd.TestDateID]
 					testDate := tpportal.GetUserResponseTestDate{
 						Id:                   utd.TestDateID,
 						Date:                 tdDate,
@@ -692,6 +693,7 @@ func (u *Usecase) ListUsers(ctx context.Context, req tpportal.UserFilter) ([]tpp
 						ForeignLanguageGrade: eResult.ForeignLanguageGrade,
 						FirstProfileGrade:    eResult.FirstProfileGrade,
 						SecondProfileGrade:   eResult.SecondProfileGrade,
+						HasResults:           hasResults,
 					}
 					testDates = append(testDates, testDate)
 				}

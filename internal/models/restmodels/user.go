@@ -42,6 +42,7 @@ type GetUserResponseTestDate struct {
 	ForeignLanguageGrade int64  `json:"foreign_language_grade"`
 	FirstProfileGrade    int64  `json:"first_profile_grade"`
 	SecondProfileGrade   int64  `json:"second_profile_grade"`
+	HasResults           bool   `json:"has_results"`
 }
 
 type ListStatusesRequest struct {

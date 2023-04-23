@@ -68,6 +68,7 @@ func NewGetUserResponseTestDateToRest(in *tpportal.GetUserResponseTestDate) *res
 		ForeignLanguageGrade: in.ForeignLanguageGrade,
 		FirstProfileGrade:    in.FirstProfileGrade,
 		SecondProfileGrade:   in.SecondProfileGrade,
+		HasResults:           in.HasResults,
 	}
 }
 
