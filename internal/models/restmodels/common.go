@@ -10,3 +10,8 @@ type DownloadFileResponse struct {
 	FileContent string `json:"file_content"`
 	ContentType string `json:"content_type"`
 }
+
+type NullInt64 struct {
+	Val     int64 `json:"val"`
+	IsValid bool  `json:"is_valid"`
+}

@@ -92,11 +92,11 @@ type GetUserResponseTestDate struct {
 	EducationYear        int64
 	PubStatus            string
 	IsAttended           bool
-	RussianLanguageGrade int64
-	MathGrade            int64
-	ForeignLanguageGrade int64
-	FirstProfileGrade    int64
-	SecondProfileGrade   int64
+	RussianLanguageGrade NullInt64
+	MathGrade            NullInt64
+	ForeignLanguageGrade NullInt64
+	FirstProfileGrade    NullInt64
+	SecondProfileGrade   NullInt64
 	HasResults           bool
 }
 

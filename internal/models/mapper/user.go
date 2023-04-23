@@ -63,11 +63,11 @@ func NewGetUserResponseTestDateToRest(in *tpportal.GetUserResponseTestDate) *res
 		EducationYear:        in.EducationYear,
 		PubStatus:            in.PubStatus,
 		IsAttended:           in.IsAttended,
-		RussianLanguageGrade: in.RussianLanguageGrade,
-		MathGrade:            in.MathGrade,
-		ForeignLanguageGrade: in.ForeignLanguageGrade,
-		FirstProfileGrade:    in.FirstProfileGrade,
-		SecondProfileGrade:   in.SecondProfileGrade,
+		RussianLanguageGrade: *NewNullInt64ToRest(&in.RussianLanguageGrade),
+		MathGrade:            *NewNullInt64ToRest(&in.MathGrade),
+		ForeignLanguageGrade: *NewNullInt64ToRest(&in.ForeignLanguageGrade),
+		FirstProfileGrade:    *NewNullInt64ToRest(&in.FirstProfileGrade),
+		SecondProfileGrade:   *NewNullInt64ToRest(&in.SecondProfileGrade),
 		HasResults:           in.HasResults,
 	}
 }

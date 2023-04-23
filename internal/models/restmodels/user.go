@@ -29,20 +29,20 @@ type GetUserResponseScreenshot struct {
 }
 
 type GetUserResponseTestDate struct {
-	Id                   int64  `json:"id"`
-	Date                 string `json:"date"`
-	Time                 string `json:"time"`
-	Location             string `json:"location"`
-	MaxPersons           int64  `json:"max_persons"`
-	EducationYear        int64  `json:"education_year"`
-	PubStatus            string `json:"pub_status"`
-	IsAttended           bool   `json:"is_attended"`
-	RussianLanguageGrade int64  `json:"russian_language_grade"`
-	MathGrade            int64  `json:"math_grade"`
-	ForeignLanguageGrade int64  `json:"foreign_language_grade"`
-	FirstProfileGrade    int64  `json:"first_profile_grade"`
-	SecondProfileGrade   int64  `json:"second_profile_grade"`
-	HasResults           bool   `json:"has_results"`
+	Id                   int64     `json:"id"`
+	Date                 string    `json:"date"`
+	Time                 string    `json:"time"`
+	Location             string    `json:"location"`
+	MaxPersons           int64     `json:"max_persons"`
+	EducationYear        int64     `json:"education_year"`
+	PubStatus            string    `json:"pub_status"`
+	IsAttended           bool      `json:"is_attended"`
+	RussianLanguageGrade NullInt64 `json:"russian_language_grade"`
+	MathGrade            NullInt64 `json:"math_grade"`
+	ForeignLanguageGrade NullInt64 `json:"foreign_language_grade"`
+	FirstProfileGrade    NullInt64 `json:"first_profile_grade"`
+	SecondProfileGrade   NullInt64 `json:"second_profile_grade"`
+	HasResults           bool      `json:"has_results"`
 }
 
 type ListStatusesRequest struct {

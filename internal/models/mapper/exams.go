@@ -9,10 +9,10 @@ func NewSetGradesRequestFromRest(in *restmodels.SetGradesRequest) *tpportal.SetG
 	return &tpportal.SetGradesRequest{
 		UserId:               in.UserId,
 		TestDateId:           in.TestDateId,
-		RussianLanguageGrade: in.RussianLanguageGrade,
-		MathGrade:            in.MathGrade,
-		ForeignLanguageGrade: in.ForeignLanguageGrade,
-		FirstProfileGrade:    in.FirstProfileGrade,
-		SecondProfileGrade:   in.SecondProfileGrade,
+		RussianLanguageGrade: *NewNullInt64FromRest(&in.RussianLanguageGrade),
+		MathGrade:            *NewNullInt64FromRest(&in.MathGrade),
+		ForeignLanguageGrade: *NewNullInt64FromRest(&in.ForeignLanguageGrade),
+		FirstProfileGrade:    *NewNullInt64FromRest(&in.FirstProfileGrade),
+		SecondProfileGrade:   *NewNullInt64FromRest(&in.SecondProfileGrade),
 	}
 }

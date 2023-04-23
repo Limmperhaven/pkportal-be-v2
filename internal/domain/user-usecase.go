@@ -203,11 +203,11 @@ func (u *Usecase) GetUser(ctx context.Context, userId int64) (tpportal.GetUserRe
 	}
 
 	type examResult struct {
-		RussianLanguageGrade int64
-		MathGrade            int64
-		ForeignLanguageGrade int64
-		FirstProfileGrade    int64
-		SecondProfileGrade   int64
+		RussianLanguageGrade tpportal.NullInt64
+		MathGrade            tpportal.NullInt64
+		ForeignLanguageGrade tpportal.NullInt64
+		FirstProfileGrade    tpportal.NullInt64
+		SecondProfileGrade   tpportal.NullInt64
 	}
 
 	examResultMap := make(map[int64]examResult, 2)
@@ -215,11 +215,26 @@ func (u *Usecase) GetUser(ctx context.Context, userId int64) (tpportal.GetUserRe
 		for _, ur := range user.R.UserExamResults {
 			if ur.EducationYear == user.EducationYear {
 				examResultMap[ur.TestDateID] = examResult{
-					RussianLanguageGrade: int64(ur.RussianLanguageGrade.Int),
-					MathGrade:            int64(ur.MathGrade.Int),
-					ForeignLanguageGrade: int64(ur.ForeignLanguageGrade.Int),
-					FirstProfileGrade:    int64(ur.FirstProfileGrade.Int),
-					SecondProfileGrade:   int64(ur.SecondProfileGrade.Int),
+					RussianLanguageGrade: tpportal.NullInt64{
+						Val:     int64(ur.RussianLanguageGrade.Int),
+						IsValid: ur.RussianLanguageGrade.Valid,
+					},
+					MathGrade: tpportal.NullInt64{
+						Val:     int64(ur.MathGrade.Int),
+						IsValid: ur.MathGrade.Valid,
+					},
+					ForeignLanguageGrade: tpportal.NullInt64{
+						Val:     int64(ur.ForeignLanguageGrade.Int),
+						IsValid: ur.ForeignLanguageGrade.Valid,
+					},
+					FirstProfileGrade: tpportal.NullInt64{
+						Val:     int64(ur.FirstProfileGrade.Int),
+						IsValid: ur.FirstProfileGrade.Valid,
+					},
+					SecondProfileGrade: tpportal.NullInt64{
+						Val:     int64(ur.SecondProfileGrade.Int),
+						IsValid: ur.SecondProfileGrade.Valid,
+					},
 				}
 			}
 		}
@@ -651,11 +666,11 @@ func (u *Usecase) ListUsers(ctx context.Context, req tpportal.UserFilter) ([]tpp
 		}
 
 		type examResult struct {
-			RussianLanguageGrade int64
-			MathGrade            int64
-			ForeignLanguageGrade int64
-			FirstProfileGrade    int64
-			SecondProfileGrade   int64
+			RussianLanguageGrade tpportal.NullInt64
+			MathGrade            tpportal.NullInt64
+			ForeignLanguageGrade tpportal.NullInt64
+			FirstProfileGrade    tpportal.NullInt64
+			SecondProfileGrade   tpportal.NullInt64
 		}
 
 		examResultMap := make(map[int64]examResult, 2)
@@ -663,11 +678,26 @@ func (u *Usecase) ListUsers(ctx context.Context, req tpportal.UserFilter) ([]tpp
 			for _, ur := range user.R.UserExamResults {
 				if ur.EducationYear == user.EducationYear {
 					examResultMap[ur.TestDateID] = examResult{
-						RussianLanguageGrade: int64(ur.RussianLanguageGrade.Int),
-						MathGrade:            int64(ur.MathGrade.Int),
-						ForeignLanguageGrade: int64(ur.ForeignLanguageGrade.Int),
-						FirstProfileGrade:    int64(ur.FirstProfileGrade.Int),
-						SecondProfileGrade:   int64(ur.SecondProfileGrade.Int),
+						RussianLanguageGrade: tpportal.NullInt64{
+							Val:     int64(ur.RussianLanguageGrade.Int),
+							IsValid: ur.RussianLanguageGrade.Valid,
+						},
+						MathGrade: tpportal.NullInt64{
+							Val:     int64(ur.MathGrade.Int),
+							IsValid: ur.MathGrade.Valid,
+						},
+						ForeignLanguageGrade: tpportal.NullInt64{
+							Val:     int64(ur.ForeignLanguageGrade.Int),
+							IsValid: ur.ForeignLanguageGrade.Valid,
+						},
+						FirstProfileGrade: tpportal.NullInt64{
+							Val:     int64(ur.FirstProfileGrade.Int),
+							IsValid: ur.FirstProfileGrade.Valid,
+						},
+						SecondProfileGrade: tpportal.NullInt64{
+							Val:     int64(ur.SecondProfileGrade.Int),
+							IsValid: ur.SecondProfileGrade.Valid,
+						},
 					}
 				}
 			}

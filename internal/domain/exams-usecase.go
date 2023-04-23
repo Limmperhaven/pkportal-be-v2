@@ -34,14 +34,29 @@ func (u *Usecase) SetGrades(ctx context.Context, req tpportal.SetGradesRequest) 
 	}
 
 	exams := tpportal.UserExamResult{
-		UserID:               req.UserId,
-		TestDateID:           req.TestDateId,
-		EducationYear:        user.EducationYear,
-		RussianLanguageGrade: null.IntFrom(int(req.RussianLanguageGrade)),
-		MathGrade:            null.IntFrom(int(req.MathGrade)),
-		ForeignLanguageGrade: null.IntFrom(int(req.ForeignLanguageGrade)),
-		FirstProfileGrade:    null.IntFrom(int(req.FirstProfileGrade)),
-		SecondProfileGrade:   null.IntFrom(int(req.SecondProfileGrade)),
+		UserID:        req.UserId,
+		TestDateID:    req.TestDateId,
+		EducationYear: user.EducationYear,
+		RussianLanguageGrade: null.Int{
+			Int:   int(req.RussianLanguageGrade.Val),
+			Valid: req.RussianLanguageGrade.IsValid,
+		},
+		MathGrade: null.Int{
+			Int:   int(req.MathGrade.Val),
+			Valid: req.MathGrade.IsValid,
+		},
+		ForeignLanguageGrade: null.Int{
+			Int:   int(req.ForeignLanguageGrade.Val),
+			Valid: req.ForeignLanguageGrade.IsValid,
+		},
+		FirstProfileGrade: null.Int{
+			Int:   int(req.FirstProfileGrade.Val),
+			Valid: req.FirstProfileGrade.IsValid,
+		},
+		SecondProfileGrade: null.Int{
+			Int:   int(req.SecondProfileGrade.Val),
+			Valid: req.SecondProfileGrade.IsValid,
+		},
 	}
 	err = exams.Upsert(ctx, u.st.DBSX(), true, []string{
 		tpportal.UserExamResultColumns.UserID,
