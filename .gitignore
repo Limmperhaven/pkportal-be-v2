@@ -23,3 +23,4 @@ etc/*.yml
 
 # Swagger gen
 gen
+docs

@@ -99,6 +99,11 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		adminExams.POST("/setGrades", c.SetGrades)
 	}
 
+	adminNotifications := admin.Group("notifications")
+	{
+		adminNotifications.POST("/create", c.CreateNotification)
+	}
+
 }
 
 func initCors(router *gin.Engine) http.Handler {
