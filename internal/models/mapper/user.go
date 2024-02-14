@@ -24,7 +24,7 @@ func NewGetUserResponseToRest(in *tpportal.GetUserResponse) *restmodels.GetUserR
 		FirstProfileSubject:  *NewIdNameToRest(&in.FirstProfileSubject),
 		SecondProfileSubject: *NewIdNameToRest(&in.SecondProfileSubject),
 		ForeignLanguage:      *NewIdNameToRest(&in.ForeignLanguage),
-		TestDate:             *NewGetUserResponseTestDateToRest(&in.TestDate),
+		TestDates:            NewGetUserResponseTestDateArrayToRest(in.TestDates),
 		Screenshot:           *NewGetUserResponseScreenshotToRest(&in.Screenshot),
 		IsActivated:          in.IsActivated,
 	}
@@ -45,16 +45,30 @@ func NewGetUserResponseScreenshotToRest(in *tpportal.GetUserResponseScreenshot) 
 	}
 }
 
+func NewGetUserResponseTestDateArrayToRest(in []tpportal.GetUserResponseTestDate) []restmodels.GetUserResponseTestDate {
+	result := make([]restmodels.GetUserResponseTestDate, len(in))
+	for i := range in {
+		result[i] = *NewGetUserResponseTestDateToRest(&in[i])
+	}
+	return result
+}
+
 func NewGetUserResponseTestDateToRest(in *tpportal.GetUserResponseTestDate) *restmodels.GetUserResponseTestDate {
 	return &restmodels.GetUserResponseTestDate{
-		Id:            in.Id,
-		Date:          in.Date,
-		Time:          in.Time,
-		Location:      in.Location,
-		MaxPersons:    in.MaxPersons,
-		EducationYear: in.EducationYear,
-		PubStatus:     in.PubStatus,
-		IsAttended:    in.IsAttended,
+		Id:                   in.Id,
+		Date:                 in.Date,
+		Time:                 in.Time,
+		Location:             in.Location,
+		MaxPersons:           in.MaxPersons,
+		EducationYear:        in.EducationYear,
+		PubStatus:            in.PubStatus,
+		IsAttended:           in.IsAttended,
+		RussianLanguageGrade: *NewNullInt64ToRest(&in.RussianLanguageGrade),
+		MathGrade:            *NewNullInt64ToRest(&in.MathGrade),
+		ForeignLanguageGrade: *NewNullInt64ToRest(&in.ForeignLanguageGrade),
+		FirstProfileGrade:    *NewNullInt64ToRest(&in.FirstProfileGrade),
+		SecondProfileGrade:   *NewNullInt64ToRest(&in.SecondProfileGrade),
+		HasResults:           in.HasResults,
 	}
 }
 

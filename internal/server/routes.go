@@ -93,6 +93,17 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		adminFL.POST("/setToUser/:userId/:flId", c.SetForeignLanguageToUser)
 		authFL.POST("/setToMe/:flId", c.SetForeignLanguageToMe)
 	}
+
+	adminExams := admin.Group("exams")
+	{
+		adminExams.POST("/setGrades", c.SetGrades)
+	}
+
+	adminNotifications := admin.Group("notifications")
+	{
+		adminNotifications.POST("/create", c.CreateNotification)
+	}
+
 }
 
 func initCors(router *gin.Engine) http.Handler {

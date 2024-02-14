@@ -73,7 +73,7 @@ type GetUserResponse struct {
 	FirstProfileSubject  IdName
 	SecondProfileSubject IdName
 	ForeignLanguage      IdName
-	TestDate             GetUserResponseTestDate
+	TestDates            []GetUserResponseTestDate
 	Screenshot           GetUserResponseScreenshot
 	IsActivated          bool
 }
@@ -84,14 +84,20 @@ type GetUserResponseScreenshot struct {
 }
 
 type GetUserResponseTestDate struct {
-	Id            int64
-	Date          string
-	Time          string
-	Location      string
-	MaxPersons    int64
-	EducationYear int64
-	PubStatus     string
-	IsAttended    bool
+	Id                   int64
+	Date                 string
+	Time                 string
+	Location             string
+	MaxPersons           int64
+	EducationYear        int64
+	PubStatus            string
+	IsAttended           bool
+	RussianLanguageGrade NullInt64
+	MathGrade            NullInt64
+	ForeignLanguageGrade NullInt64
+	FirstProfileGrade    NullInt64
+	SecondProfileGrade   NullInt64
+	HasResults           bool
 }
 
 type ListStatusesRequest struct {

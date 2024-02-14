@@ -90,3 +90,11 @@ func (u *Usecase) detectContentType(data []byte) string {
 	mimetype.SetLimit(0)
 	return mimetype.Detect(data).String()
 }
+
+func (u *Usecase) int64SliceToInterfaceSlice(in []int64) []interface{} {
+	out := make([]interface{}, len(in))
+	for i, v := range in {
+		out[i] = v
+	}
+	return out
+}

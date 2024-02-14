@@ -4,35 +4,35 @@
 package tpportal
 
 var TableNames = struct {
-	CommonLocations         string
-	CommonTestDateAddresses string
-	ForeignLanguages        string
-	ProfileSubjects         string
-	Profiles                string
-	Statuses                string
-	Subjects                string
-	TestDates               string
-	UserForeignLanguages    string
-	UserProfileSubjects     string
-	UserProfiles            string
-	UserScreenshots         string
-	UserStatuses            string
-	UserTestDates           string
-	Users                   string
+	CommonLocations      string
+	ForeignLanguages     string
+	ProfileSubjects      string
+	Profiles             string
+	Statuses             string
+	Subjects             string
+	TestDates            string
+	UserExamResults      string
+	UserForeignLanguages string
+	UserProfileSubjects  string
+	UserProfiles         string
+	UserScreenshots      string
+	UserStatuses         string
+	UserTestDates        string
+	Users                string
 }{
-	CommonLocations:         "common_locations",
-	CommonTestDateAddresses: "common_test_date_addresses",
-	ForeignLanguages:        "foreign_languages",
-	ProfileSubjects:         "profile_subjects",
-	Profiles:                "profiles",
-	Statuses:                "statuses",
-	Subjects:                "subjects",
-	TestDates:               "test_dates",
-	UserForeignLanguages:    "user_foreign_languages",
-	UserProfileSubjects:     "user_profile_subjects",
-	UserProfiles:            "user_profiles",
-	UserScreenshots:         "user_screenshots",
-	UserStatuses:            "user_statuses",
-	UserTestDates:           "user_test_dates",
-	Users:                   "users",
+	CommonLocations:      "common_locations",
+	ForeignLanguages:     "foreign_languages",
+	ProfileSubjects:      "profile_subjects",
+	Profiles:             "profiles",
+	Statuses:             "statuses",
+	Subjects:             "subjects",
+	TestDates:            "test_dates",
+	UserExamResults:      "user_exam_results",
+	UserForeignLanguages: "user_foreign_languages",
+	UserProfileSubjects:  "user_profile_subjects",
+	UserProfiles:         "user_profiles",
+	UserScreenshots:      "user_screenshots",
+	UserStatuses:         "user_statuses",
+	UserTestDates:        "user_test_dates",
+	Users:                "users",
 }

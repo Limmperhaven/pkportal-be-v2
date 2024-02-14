@@ -132,6 +132,11 @@ func (u *Usecase) GetUser(ctx context.Context, userId int64) (tpportal.GetUserRe
 				tpportal.UserRels.UserScreenshots,
 			),
 		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserExamResults,
+			),
+		),
 	).One(ctx, u.st.DBSX())
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -197,20 +202,67 @@ func (u *Usecase) GetUser(ctx context.Context, userId int64) (tpportal.GetUserRe
 		}
 	}
 
-	testDate := tpportal.GetUserResponseTestDate{}
+	type examResult struct {
+		RussianLanguageGrade tpportal.NullInt64
+		MathGrade            tpportal.NullInt64
+		ForeignLanguageGrade tpportal.NullInt64
+		FirstProfileGrade    tpportal.NullInt64
+		SecondProfileGrade   tpportal.NullInt64
+	}
+
+	examResultMap := make(map[int64]examResult, 2)
+	if user.R.UserExamResults != nil {
+		for _, ur := range user.R.UserExamResults {
+			if ur.EducationYear == user.EducationYear {
+				examResultMap[ur.TestDateID] = examResult{
+					RussianLanguageGrade: tpportal.NullInt64{
+						Val:     int64(ur.RussianLanguageGrade.Int),
+						IsValid: ur.RussianLanguageGrade.Valid,
+					},
+					MathGrade: tpportal.NullInt64{
+						Val:     int64(ur.MathGrade.Int),
+						IsValid: ur.MathGrade.Valid,
+					},
+					ForeignLanguageGrade: tpportal.NullInt64{
+						Val:     int64(ur.ForeignLanguageGrade.Int),
+						IsValid: ur.ForeignLanguageGrade.Valid,
+					},
+					FirstProfileGrade: tpportal.NullInt64{
+						Val:     int64(ur.FirstProfileGrade.Int),
+						IsValid: ur.FirstProfileGrade.Valid,
+					},
+					SecondProfileGrade: tpportal.NullInt64{
+						Val:     int64(ur.SecondProfileGrade.Int),
+						IsValid: ur.SecondProfileGrade.Valid,
+					},
+				}
+			}
+		}
+	}
+
+	testDates := make([]tpportal.GetUserResponseTestDate, 0, 2)
 	if len(user.R.UserTestDates) != 0 {
 		for _, utd := range user.R.UserTestDates {
 			if utd.EducationYear == user.EducationYear {
-				testDate.Id = utd.TestDateID
 				tdDate, tdTime := u.formatDateTime(utd.R.TestDate.DateTime)
-				testDate.Date = tdDate
-				testDate.Time = tdTime
-				testDate.Location = utd.R.TestDate.Location
-				testDate.MaxPersons = int64(utd.R.TestDate.MaxPersons)
-				testDate.EducationYear = int64(utd.R.TestDate.EducationYear)
-				testDate.PubStatus = utd.R.TestDate.PubStatus.String()
-				testDate.IsAttended = utd.IsAttended
-				break
+				eResult, hasResults := examResultMap[utd.TestDateID]
+				testDate := tpportal.GetUserResponseTestDate{
+					Id:                   utd.TestDateID,
+					Date:                 tdDate,
+					Time:                 tdTime,
+					Location:             utd.R.TestDate.Location,
+					MaxPersons:           int64(utd.R.TestDate.MaxPersons),
+					EducationYear:        int64(utd.R.TestDate.EducationYear),
+					PubStatus:            utd.R.TestDate.PubStatus.String(),
+					IsAttended:           utd.IsAttended,
+					RussianLanguageGrade: eResult.RussianLanguageGrade,
+					MathGrade:            eResult.MathGrade,
+					ForeignLanguageGrade: eResult.ForeignLanguageGrade,
+					FirstProfileGrade:    eResult.FirstProfileGrade,
+					SecondProfileGrade:   eResult.SecondProfileGrade,
+					HasResults:           hasResults,
+				}
+				testDates = append(testDates, testDate)
 			}
 		}
 	}
@@ -257,7 +309,7 @@ func (u *Usecase) GetUser(ctx context.Context, userId int64) (tpportal.GetUserRe
 		FirstProfileSubject:  firstProfileSubject,
 		SecondProfileSubject: secondProfileSubject,
 		ForeignLanguage:      foreignLanguage,
-		TestDate:             testDate,
+		TestDates:            testDates,
 		Screenshot:           screen,
 		IsActivated:          user.IsActivated,
 	}
@@ -541,6 +593,11 @@ func (u *Usecase) ListUsers(ctx context.Context, req tpportal.UserFilter) ([]tpp
 				tpportal.UserRels.UserScreenshots,
 			),
 		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserExamResults,
+			),
+		),
 	).All(ctx, u.st.DBSX())
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -608,19 +665,67 @@ func (u *Usecase) ListUsers(ctx context.Context, req tpportal.UserFilter) ([]tpp
 			}
 		}
 
-		testDate := tpportal.GetUserResponseTestDate{}
+		type examResult struct {
+			RussianLanguageGrade tpportal.NullInt64
+			MathGrade            tpportal.NullInt64
+			ForeignLanguageGrade tpportal.NullInt64
+			FirstProfileGrade    tpportal.NullInt64
+			SecondProfileGrade   tpportal.NullInt64
+		}
+
+		examResultMap := make(map[int64]examResult, 2)
+		if user.R.UserExamResults != nil {
+			for _, ur := range user.R.UserExamResults {
+				if ur.EducationYear == user.EducationYear {
+					examResultMap[ur.TestDateID] = examResult{
+						RussianLanguageGrade: tpportal.NullInt64{
+							Val:     int64(ur.RussianLanguageGrade.Int),
+							IsValid: ur.RussianLanguageGrade.Valid,
+						},
+						MathGrade: tpportal.NullInt64{
+							Val:     int64(ur.MathGrade.Int),
+							IsValid: ur.MathGrade.Valid,
+						},
+						ForeignLanguageGrade: tpportal.NullInt64{
+							Val:     int64(ur.ForeignLanguageGrade.Int),
+							IsValid: ur.ForeignLanguageGrade.Valid,
+						},
+						FirstProfileGrade: tpportal.NullInt64{
+							Val:     int64(ur.FirstProfileGrade.Int),
+							IsValid: ur.FirstProfileGrade.Valid,
+						},
+						SecondProfileGrade: tpportal.NullInt64{
+							Val:     int64(ur.SecondProfileGrade.Int),
+							IsValid: ur.SecondProfileGrade.Valid,
+						},
+					}
+				}
+			}
+		}
+
+		testDates := make([]tpportal.GetUserResponseTestDate, 0, 2)
 		if len(user.R.UserTestDates) != 0 {
 			for _, utd := range user.R.UserTestDates {
 				if utd.EducationYear == user.EducationYear {
-					testDate.Id = utd.TestDateID
 					tdDate, tdTime := u.formatDateTime(utd.R.TestDate.DateTime)
-					testDate.Date = tdDate
-					testDate.Time = tdTime
-					testDate.Location = utd.R.TestDate.Location
-					testDate.MaxPersons = int64(utd.R.TestDate.MaxPersons)
-					testDate.EducationYear = int64(utd.R.TestDate.EducationYear)
-					testDate.PubStatus = utd.R.TestDate.PubStatus.String()
-					testDate.IsAttended = utd.IsAttended
+					eResult, hasResults := examResultMap[utd.TestDateID]
+					testDate := tpportal.GetUserResponseTestDate{
+						Id:                   utd.TestDateID,
+						Date:                 tdDate,
+						Time:                 tdTime,
+						Location:             utd.R.TestDate.Location,
+						MaxPersons:           int64(utd.R.TestDate.MaxPersons),
+						EducationYear:        int64(utd.R.TestDate.EducationYear),
+						PubStatus:            utd.R.TestDate.PubStatus.String(),
+						IsAttended:           utd.IsAttended,
+						RussianLanguageGrade: eResult.RussianLanguageGrade,
+						MathGrade:            eResult.MathGrade,
+						ForeignLanguageGrade: eResult.ForeignLanguageGrade,
+						FirstProfileGrade:    eResult.FirstProfileGrade,
+						SecondProfileGrade:   eResult.SecondProfileGrade,
+						HasResults:           hasResults,
+					}
+					testDates = append(testDates, testDate)
 				}
 			}
 		}
@@ -667,7 +772,7 @@ func (u *Usecase) ListUsers(ctx context.Context, req tpportal.UserFilter) ([]tpp
 			FirstProfileSubject:  firstProfileSubject,
 			SecondProfileSubject: secondProfileSubject,
 			ForeignLanguage:      foreignLanguage,
-			TestDate:             testDate,
+			TestDates:            testDates,
 			Screenshot:           screen,
 			IsActivated:          user.IsActivated,
 		}

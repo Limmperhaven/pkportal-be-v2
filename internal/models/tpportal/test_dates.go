@@ -172,19 +172,29 @@ var TestDateWhere = struct {
 
 // TestDateRels is where relationship names are stored.
 var TestDateRels = struct {
-	UserTestDates string
+	UserExamResults string
+	UserTestDates   string
 }{
-	UserTestDates: "UserTestDates",
+	UserExamResults: "UserExamResults",
+	UserTestDates:   "UserTestDates",
 }
 
 // testDateR is where relationships are stored.
 type testDateR struct {
-	UserTestDates UserTestDateSlice `boil:"UserTestDates" json:"UserTestDates" toml:"UserTestDates" yaml:"UserTestDates"`
+	UserExamResults UserExamResultSlice `boil:"UserExamResults" json:"UserExamResults" toml:"UserExamResults" yaml:"UserExamResults"`
+	UserTestDates   UserTestDateSlice   `boil:"UserTestDates" json:"UserTestDates" toml:"UserTestDates" yaml:"UserTestDates"`
 }
 
 // NewStruct creates a new relationship struct
 func (*testDateR) NewStruct() *testDateR {
 	return &testDateR{}
+}
+
+func (r *testDateR) GetUserExamResults() UserExamResultSlice {
+	if r == nil {
+		return nil
+	}
+	return r.UserExamResults
 }
 
 func (r *testDateR) GetUserTestDates() UserTestDateSlice {
@@ -483,6 +493,20 @@ func (q testDateQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (b
 	return count > 0, nil
 }
 
+// UserExamResults retrieves all the user_exam_result's UserExamResults with an executor.
+func (o *TestDate) UserExamResults(mods ...qm.QueryMod) userExamResultQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"user_exam_results\".\"test_date_id\"=?", o.ID),
+	)
+
+	return UserExamResults(queryMods...)
+}
+
 // UserTestDates retrieves all the user_test_date's UserTestDates with an executor.
 func (o *TestDate) UserTestDates(mods ...qm.QueryMod) userTestDateQuery {
 	var queryMods []qm.QueryMod
@@ -495,6 +519,120 @@ func (o *TestDate) UserTestDates(mods ...qm.QueryMod) userTestDateQuery {
 	)
 
 	return UserTestDates(queryMods...)
+}
+
+// LoadUserExamResults allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (testDateL) LoadUserExamResults(ctx context.Context, e boil.ContextExecutor, singular bool, maybeTestDate interface{}, mods queries.Applicator) error {
+	var slice []*TestDate
+	var object *TestDate
+
+	if singular {
+		var ok bool
+		object, ok = maybeTestDate.(*TestDate)
+		if !ok {
+			object = new(TestDate)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeTestDate)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeTestDate))
+			}
+		}
+	} else {
+		s, ok := maybeTestDate.(*[]*TestDate)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeTestDate)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeTestDate))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &testDateR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &testDateR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`user_exam_results`),
+		qm.WhereIn(`user_exam_results.test_date_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load user_exam_results")
+	}
+
+	var resultSlice []*UserExamResult
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice user_exam_results")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on user_exam_results")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for user_exam_results")
+	}
+
+	if len(userExamResultAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.UserExamResults = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &userExamResultR{}
+			}
+			foreign.R.TestDate = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.TestDateID {
+				local.R.UserExamResults = append(local.R.UserExamResults, foreign)
+				if foreign.R == nil {
+					foreign.R = &userExamResultR{}
+				}
+				foreign.R.TestDate = local
+				break
+			}
+		}
+	}
+
+	return nil
 }
 
 // LoadUserTestDates allows an eager lookup of values, cached into the
@@ -611,6 +749,59 @@ func (testDateL) LoadUserTestDates(ctx context.Context, e boil.ContextExecutor, 
 	return nil
 }
 
+// AddUserExamResults adds the given related objects to the existing relationships
+// of the test_date, optionally inserting them as new records.
+// Appends related to o.R.UserExamResults.
+// Sets related.R.TestDate appropriately.
+func (o *TestDate) AddUserExamResults(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*UserExamResult) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.TestDateID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"user_exam_results\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"test_date_id"}),
+				strmangle.WhereClause("\"", "\"", 2, userExamResultPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.UserID, rel.TestDateID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.TestDateID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &testDateR{
+			UserExamResults: related,
+		}
+	} else {
+		o.R.UserExamResults = append(o.R.UserExamResults, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &userExamResultR{
+				TestDate: o,
+			}
+		} else {
+			rel.R.TestDate = o
+		}
+	}
+	return nil
+}
+
 // AddUserTestDates adds the given related objects to the existing relationships
 // of the test_date, optionally inserting them as new records.
 // Appends related to o.R.UserTestDates.
@@ -629,7 +820,7 @@ func (o *TestDate) AddUserTestDates(ctx context.Context, exec boil.ContextExecut
 				strmangle.SetParamNames("\"", "\"", 1, []string{"test_date_id"}),
 				strmangle.WhereClause("\"", "\"", 2, userTestDatePrimaryKeyColumns),
 			)
-			values := []interface{}{o.ID, rel.UserID, rel.EducationYear}
+			values := []interface{}{o.ID, rel.UserID, rel.TestDateID}
 
 			if boil.IsDebug(ctx) {
 				writer := boil.DebugWriterFrom(ctx)

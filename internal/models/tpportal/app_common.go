@@ -10,3 +10,8 @@ type DownloadFileResponse struct {
 	FileContent string
 	ContentType string
 }
+
+type NullInt64 struct {
+	Val     int64
+	IsValid bool
+}

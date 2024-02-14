@@ -27,3 +27,17 @@ func NewDownloadFileResponseToRest(in *tpportal.DownloadFileResponse) *restmodel
 		ContentType: in.ContentType,
 	}
 }
+
+func NewNullInt64ToRest(in *tpportal.NullInt64) *restmodels.NullInt64 {
+	return &restmodels.NullInt64{
+		Val:     in.Val,
+		IsValid: in.IsValid,
+	}
+}
+
+func NewNullInt64FromRest(in *restmodels.NullInt64) *tpportal.NullInt64 {
+	return &tpportal.NullInt64{
+		Val:     in.Val,
+		IsValid: in.IsValid,
+	}
+}
