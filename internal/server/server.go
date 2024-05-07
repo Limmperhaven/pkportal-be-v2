@@ -2,16 +2,17 @@ package server
 
 import (
 	"context"
-	"github.com/Limmperhaven/pkportal-be-v2/internal/config"
-	"github.com/Limmperhaven/pkportal-be-v2/internal/controllers"
-	"github.com/Limmperhaven/pkportal-be-v2/internal/controllers/middlewares"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/Limmperhaven/pkportal-be-v2/internal/config"
+	"github.com/Limmperhaven/pkportal-be-v2/internal/controllers"
+	"github.com/Limmperhaven/pkportal-be-v2/internal/controllers/middlewares"
+	"github.com/gin-gonic/gin"
 )
 
 type Server struct {
@@ -41,7 +42,7 @@ func NewServer(cfg *config.Server, c *controllers.ControllerStorage, m *middlewa
 func (s *Server) Run() {
 	go func() {
 		err := s.server.ListenAndServeTLS(s.cfg.SSLCertPath, s.cfg.SSLKeyPath)
-		//err := s.server.ListenAndServe()
+		// err := s.server.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
 			log.Fatalf("There's an error with the server: %s", err.Error())
 		}

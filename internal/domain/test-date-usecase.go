@@ -6,6 +6,12 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"fmt"
+	"html/template"
+	"os"
+	"strconv"
+	"time"
+	"unicode/utf8"
+
 	"github.com/Limmperhaven/pkportal-be-v2/internal/body"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/tpportal"
@@ -15,11 +21,6 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"github.com/xuri/excelize/v2"
-	"html/template"
-	"os"
-	"strconv"
-	"time"
-	"unicode/utf8"
 )
 
 func (u *Usecase) CreateTestDate(ctx context.Context, req tpportal.CreateTestDateRequest) error {
@@ -559,9 +560,7 @@ func (u *Usecase) DownloadRegistrationList(ctx context.Context, tdId int64) (tpp
 
 	pdfg, err := wkhtmltopdf.NewPDFGenerator()
 	if err != nil {
-		if err != nil {
-			return tpportal.DownloadFileResponse{}, errs.NewInternal(fmt.Errorf("ошибка при инициализации генератора pdf: %s", err.Error()))
-		}
+		return tpportal.DownloadFileResponse{}, errs.NewInternal(fmt.Errorf("ошибка при инициализации генератора pdf: %s", err.Error()))
 	}
 	page := wkhtmltopdf.NewPageReader(bytes.NewReader(outHtml.Bytes()))
 
@@ -576,9 +575,7 @@ func (u *Usecase) DownloadRegistrationList(ctx context.Context, tdId int64) (tpp
 
 	err = pdfg.Create()
 	if err != nil {
-		if err != nil {
-			return tpportal.DownloadFileResponse{}, errs.NewInternal(fmt.Errorf("ошибка при генерации pdf: %s", err.Error()))
-		}
+		return tpportal.DownloadFileResponse{}, errs.NewInternal(fmt.Errorf("ошибка при генерации pdf: %s", err.Error()))
 	}
 
 	b64File := base64.StdEncoding.EncodeToString(pdfg.Bytes())
@@ -641,6 +638,13 @@ func (u *Usecase) ExportTestDateToXlsx(ctx context.Context, tdId int64) (tpporta
 				tpportal.UserStatusRels.Status,
 			),
 		),
+		qm.Load(
+			qm.Rels(
+				tpportal.TestDateRels.UserTestDates,
+				tpportal.UserTestDateRels.User,
+				tpportal.UserRels.UserExamResults,
+			),
+		),
 	).One(ctx, u.st.DBSX())
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -673,6 +677,11 @@ func (u *Usecase) ExportTestDateToXlsx(ctx context.Context, tdId int64) (tpporta
 	f.SetCellValue("Sheet1", "K1", "Номер телефона")
 	f.SetCellValue("Sheet1", "L1", "Номер телефона законного представителя")
 	f.SetCellValue("Sheet1", "M1", "Статус")
+	f.SetCellValue("Sheet1", "N1", "Результат Русский язык")
+	f.SetCellValue("Sheet1", "O1", "Результат Математика")
+	f.SetCellValue("Sheet1", "P1", "Результат Иностранный язык")
+	f.SetCellValue("Sheet1", "Q1", "Результат Первый профильный")
+	f.SetCellValue("Sheet1", "R1", "Результат Второй профильный")
 
 	if td.R.UserTestDates != nil {
 		for i, utd := range td.R.UserTestDates {
@@ -685,6 +694,7 @@ func (u *Usecase) ExportTestDateToXlsx(ctx context.Context, tdId int64) (tpporta
 			var secondSubject tpportal.Subject
 			var foreignLanguage tpportal.ForeignLanguage
 			var status tpportal.Status
+			var examResult tpportal.UserExamResult
 
 			if user.R.UserProfiles != nil {
 				for _, up := range user.R.UserProfiles {
@@ -732,6 +742,15 @@ func (u *Usecase) ExportTestDateToXlsx(ctx context.Context, tdId int64) (tpporta
 				}
 			}
 
+			if user.R.UserExamResults != nil {
+				for _, uer := range user.R.UserExamResults {
+					if uer.EducationYear == user.EducationYear {
+						examResult = *uer
+						break
+					}
+				}
+			}
+
 			dob := u.formatDate(user.DateOfBirth)
 
 			f.SetCellValue("Sheet1", "A"+strconv.Itoa(index), user.ID)
@@ -747,6 +766,11 @@ func (u *Usecase) ExportTestDateToXlsx(ctx context.Context, tdId int64) (tpporta
 			f.SetCellValue("Sheet1", "K"+strconv.Itoa(index), user.PhoneNumber)
 			f.SetCellValue("Sheet1", "L"+strconv.Itoa(index), user.ParentPhoneNumber)
 			f.SetCellValue("Sheet1", "M"+strconv.Itoa(index), status.Name)
+			f.SetCellValue("Sheet1", "N"+strconv.Itoa(index), examResult.RussianLanguageGrade.Int)
+			f.SetCellValue("Sheet1", "O"+strconv.Itoa(index), examResult.MathGrade.Int)
+			f.SetCellValue("Sheet1", "P"+strconv.Itoa(index), examResult.ForeignLanguageGrade.Int)
+			f.SetCellValue("Sheet1", "Q"+strconv.Itoa(index), examResult.FirstProfileGrade.Int)
+			f.SetCellValue("Sheet1", "R"+strconv.Itoa(index), examResult.SecondProfileGrade.Int)
 		}
 	}
 
