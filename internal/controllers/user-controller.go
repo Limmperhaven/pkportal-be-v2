@@ -2,6 +2,10 @@ package controllers
 
 import (
 	"fmt"
+	"io"
+	"net/http"
+	"strconv"
+
 	"github.com/Limmperhaven/pkportal-be-v2/internal/body"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/controllers/response"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
@@ -10,9 +14,6 @@ import (
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/tpportal"
 	"github.com/friendsofgo/errors"
 	"github.com/gin-gonic/gin"
-	"io"
-	"net/http"
-	"strconv"
 )
 
 func (s *ControllerStorage) CreateUser(c *gin.Context) {
@@ -208,21 +209,6 @@ func (s *ControllerStorage) DownloadRegistrationList(c *gin.Context) {
 	c.JSON(http.StatusOK, *mapper.NewDownloadFileResponseToRest(&res))
 }
 
-func (s *ControllerStorage) ExportToXlsx(c *gin.Context) {
-	tdIdParam := c.Param("tdId")
-	tdId, err := strconv.ParseInt(tdIdParam, 10, 64)
-	if err != nil {
-		response.NewErrorResponse(c, errs.NewBadRequest(fmt.Errorf("невалидный id: %s", tdIdParam)))
-		return
-	}
-	res, err := s.uc.ExportTestDateToXlsx(c, tdId)
-	if err != nil {
-		response.NewErrorResponse(c, err)
-		return
-	}
-	c.JSON(http.StatusOK, *mapper.NewDownloadFileResponseToRest(&res))
-}
-
 func (s *ControllerStorage) SetUserRole(c *gin.Context) {
 	userIdParam := c.Param("userId")
 	userId, err := strconv.ParseInt(userIdParam, 10, 64)
@@ -246,4 +232,13 @@ func (s *ControllerStorage) ResendActivationEmail(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusOK)
+}
+
+func (s *ControllerStorage) ExportUsersToXlsx(c *gin.Context) {
+	res, err := s.uc.ExportUsersToXlsx(c)
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, *mapper.NewDownloadFileResponseToRest(&res))
 }

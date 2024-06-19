@@ -5,6 +5,11 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+	"unicode/utf8"
+
 	"github.com/Limmperhaven/pkportal-be-v2/internal/body"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/config"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
@@ -15,8 +20,7 @@ import (
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
-	"strings"
-	"time"
+	"github.com/xuri/excelize/v2"
 )
 
 func (u *Usecase) CreateUser(ctx context.Context, req *tpportal.CreateUserRequest) error {
@@ -950,4 +954,204 @@ func (u *Usecase) ResendActivationEmail(ctx context.Context) error {
 		return errs.NewInternal(err)
 	}
 	return nil
+}
+
+func (u *Usecase) ExportUsersToXlsx(ctx context.Context) (tpportal.DownloadFileResponse, error) {
+	users, err := tpportal.Users(
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserProfiles,
+				tpportal.UserProfileRels.FirstProfile,
+			),
+		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserProfiles,
+				tpportal.UserProfileRels.SecondProfile,
+			),
+		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserProfileSubjects,
+				tpportal.UserProfileSubjectRels.FirstProfileSubject,
+			),
+		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserProfileSubjects,
+				tpportal.UserProfileSubjectRels.SecondProfileSubject,
+			),
+		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserForeignLanguages,
+				tpportal.UserForeignLanguageRels.ForeignLanguage,
+			),
+		),
+		qm.Load(
+			qm.Rels(
+				tpportal.UserRels.UserStatuses,
+				tpportal.UserStatusRels.Status,
+			),
+		),
+		qm.Load(tpportal.UserRels.UserExamResults),
+	).All(ctx, u.st.DBSX())
+	if err != nil {
+		return tpportal.DownloadFileResponse{}, errs.NewInternal(err)
+	}
+
+	f := excelize.NewFile()
+	defer f.Close()
+
+	sheetName := "Sheet1"
+
+	sheetIndex, err := f.NewSheet(sheetName)
+	if err != nil {
+		return tpportal.DownloadFileResponse{}, errs.NewInternal(
+			fmt.Errorf("ошибка при создании нового листа xlsx: %s", err.Error()))
+	}
+
+	f.SetCellValue("Sheet1", "A1", "ID")
+	f.SetCellValue("Sheet1", "B1", "ФИО")
+	f.SetCellValue("Sheet1", "C1", "Дата Рождения")
+	f.SetCellValue("Sheet1", "D1", "Email")
+	f.SetCellValue("Sheet1", "E1", "Профиль 1")
+	f.SetCellValue("Sheet1", "F1", "Предмет профиля 1")
+	f.SetCellValue("Sheet1", "G1", "Профиль 2")
+	f.SetCellValue("Sheet1", "H1", "Предмет профиля 2")
+	f.SetCellValue("Sheet1", "I1", "Иностранный язык")
+	f.SetCellValue("Sheet1", "J1", "Школа")
+	f.SetCellValue("Sheet1", "K1", "Номер телефона")
+	f.SetCellValue("Sheet1", "L1", "Номер телефона законного представителя")
+	f.SetCellValue("Sheet1", "M1", "Статус")
+	f.SetCellValue("Sheet1", "N1", "Результат Русский язык")
+	f.SetCellValue("Sheet1", "O1", "Результат Математика")
+	f.SetCellValue("Sheet1", "P1", "Результат Иностранный язык")
+	f.SetCellValue("Sheet1", "Q1", "Результат Первый профильный")
+	f.SetCellValue("Sheet1", "R1", "Результат Второй профильный")
+
+	if users != nil {
+		for i, user := range users {
+			index := i + 2
+
+			var firstProfile tpportal.Profile
+			var secondProfile tpportal.Profile
+			var firstSubject tpportal.Subject
+			var secondSubject tpportal.Subject
+			var foreignLanguage tpportal.ForeignLanguage
+			var status tpportal.Status
+			var examResult tpportal.UserExamResult
+
+			if user.R.UserProfiles != nil {
+				for _, up := range user.R.UserProfiles {
+					if up.UserEducationYear == user.EducationYear {
+						if up.R.FirstProfile != nil {
+							firstProfile = *up.R.FirstProfile
+						}
+						if up.R.SecondProfile != nil {
+							secondProfile = *up.R.SecondProfile
+						}
+						break
+					}
+				}
+			}
+			if user.R.UserProfileSubjects != nil {
+				for _, ups := range user.R.UserProfileSubjects {
+					if ups.UserEducationYear == user.EducationYear {
+						if ups.R.FirstProfileSubject != nil {
+							firstSubject = *ups.R.FirstProfileSubject
+						}
+						if ups.R.SecondProfileSubject != nil {
+							secondSubject = *ups.R.SecondProfileSubject
+						}
+						break
+					}
+				}
+			}
+			if user.R.UserForeignLanguages != nil {
+				for _, ufls := range user.R.UserForeignLanguages {
+					if ufls.UserEducationYear == user.EducationYear {
+						if ufls.R.ForeignLanguage != nil {
+							foreignLanguage = *ufls.R.ForeignLanguage
+						}
+						break
+					}
+				}
+			}
+
+			if user.R.UserStatuses != nil {
+				for _, us := range user.R.UserStatuses {
+					if us.EducationYear == user.EducationYear {
+						status = *us.R.Status
+						break
+					}
+				}
+			}
+
+			if user.R.UserExamResults != nil {
+				for _, uer := range user.R.UserExamResults {
+					if uer.EducationYear == user.EducationYear {
+						examResult = *uer
+						break
+					}
+				}
+			}
+
+			dob := u.formatDate(user.DateOfBirth)
+
+			f.SetCellValue("Sheet1", "A"+strconv.Itoa(index), user.ID)
+			f.SetCellValue("Sheet1", "B"+strconv.Itoa(index), user.Fio)
+			f.SetCellValue("Sheet1", "C"+strconv.Itoa(index), dob)
+			f.SetCellValue("Sheet1", "D"+strconv.Itoa(index), user.Email)
+			f.SetCellValue("Sheet1", "E"+strconv.Itoa(index), firstProfile.Name)
+			f.SetCellValue("Sheet1", "F"+strconv.Itoa(index), firstSubject.Name)
+			f.SetCellValue("Sheet1", "G"+strconv.Itoa(index), secondProfile.Name)
+			f.SetCellValue("Sheet1", "H"+strconv.Itoa(index), secondSubject.Name)
+			f.SetCellValue("Sheet1", "I"+strconv.Itoa(index), foreignLanguage.Name)
+			f.SetCellValue("Sheet1", "J"+strconv.Itoa(index), user.CurrentSchool.String)
+			f.SetCellValue("Sheet1", "K"+strconv.Itoa(index), user.PhoneNumber)
+			f.SetCellValue("Sheet1", "L"+strconv.Itoa(index), user.ParentPhoneNumber)
+			f.SetCellValue("Sheet1", "M"+strconv.Itoa(index), status.Name)
+			f.SetCellValue("Sheet1", "N"+strconv.Itoa(index), examResult.RussianLanguageGrade.Int)
+			f.SetCellValue("Sheet1", "O"+strconv.Itoa(index), examResult.MathGrade.Int)
+			f.SetCellValue("Sheet1", "P"+strconv.Itoa(index), examResult.ForeignLanguageGrade.Int)
+			f.SetCellValue("Sheet1", "Q"+strconv.Itoa(index), examResult.FirstProfileGrade.Int)
+			f.SetCellValue("Sheet1", "R"+strconv.Itoa(index), examResult.SecondProfileGrade.Int)
+		}
+	}
+
+	cols, err := f.GetCols(sheetName)
+	if err != nil {
+		return tpportal.DownloadFileResponse{}, errs.NewInternal(
+			fmt.Errorf("ошибка при получении столбцов xlsx: %s", err.Error()))
+	}
+	for idx, col := range cols {
+		largestWidth := 0
+		for _, rowCell := range col {
+			cellWidth := utf8.RuneCountInString(rowCell) + 2
+			if cellWidth > largestWidth {
+				largestWidth = cellWidth
+			}
+		}
+		name, err := excelize.ColumnNumberToName(idx + 1)
+		if err != nil {
+			return tpportal.DownloadFileResponse{}, errs.NewInternal(
+				fmt.Errorf("ошибка при получении названий столбцов: %s", err.Error()))
+		}
+		f.SetColWidth("Sheet1", name, name, float64(largestWidth))
+	}
+
+	f.SetActiveSheet(sheetIndex)
+	buf, err := f.WriteToBuffer()
+	if err != nil {
+		return tpportal.DownloadFileResponse{}, errs.NewInternal(fmt.Errorf("ошибка при чтении файла: %s", err.Error()))
+	}
+
+	b64File := base64.StdEncoding.EncodeToString(buf.Bytes())
+
+	return tpportal.DownloadFileResponse{
+		FileName:    fmt.Sprintf("users_%s", time.Now().Format(time.RFC3339Nano)),
+		FileContent: b64File,
+		ContentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+	}, nil
 }

@@ -3,6 +3,9 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/Limmperhaven/pkportal-be-v2/internal/body"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/controllers/response"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
@@ -10,8 +13,6 @@ import (
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/restmodels"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/tpportal"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"strconv"
 )
 
 func (s *ControllerStorage) CreateTestDate(c *gin.Context) {
@@ -164,4 +165,19 @@ func (s *ControllerStorage) SetTestDateAttended(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusOK)
+}
+
+func (s *ControllerStorage) ExportTestDateToXlsx(c *gin.Context) {
+	tdIdParam := c.Param("tdId")
+	tdId, err := strconv.ParseInt(tdIdParam, 10, 64)
+	if err != nil {
+		response.NewErrorResponse(c, errs.NewBadRequest(fmt.Errorf("невалидный id: %s", tdIdParam)))
+		return
+	}
+	res, err := s.uc.ExportTestDateToXlsx(c, tdId)
+	if err != nil {
+		response.NewErrorResponse(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, *mapper.NewDownloadFileResponseToRest(&res))
 }

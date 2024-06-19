@@ -1,11 +1,12 @@
 package server
 
 import (
+	"net/http"
+
 	"github.com/Limmperhaven/pkportal-be-v2/internal/controllers"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/controllers/middlewares"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/cors"
-	"net/http"
 )
 
 func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlewares.MiddlewareStorage) {
@@ -39,7 +40,7 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		adminTd.GET("/listCommonLocations", c.ListCommonLocations)
 		adminTd.POST("/setAttendance/:userId/:tdId/:attendance", c.SetTestDateAttended)
 		adminTd.GET("/regList/:tdId", c.DownloadRegistrationList)
-		adminTd.GET("/export/:tdId", c.ExportToXlsx)
+		adminTd.GET("/export/:tdId", c.ExportTestDateToXlsx)
 	}
 
 	authUser := authorized.Group("/user")
@@ -53,6 +54,7 @@ func initRoutes(router *gin.Engine, c *controllers.ControllerStorage, m *middlew
 		adminUser.POST("/setStatus/:userId/:statusId", c.SetUserStatus)
 		adminUser.GET("/downloadScreenshot/:userId", c.DownloadScreenshot)
 		adminUser.POST("/setUserRole/:userId/:role", c.SetUserRole)
+		adminUser.GET("/export", c.ExportUsersToXlsx)
 		aNAUser.GET("/me", c.GetMe)
 		authUser.POST("/listStatuses", c.ListStatuses)
 		authUser.POST("/uploadScreenshot", c.UploadScreenshot)
