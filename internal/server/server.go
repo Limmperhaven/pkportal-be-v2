@@ -40,13 +40,21 @@ func NewServer(cfg *config.Server, c *controllers.ControllerStorage, m *middlewa
 }
 
 func (s *Server) Run() {
-	go func() {
-		err := s.server.ListenAndServeTLS(s.cfg.SSLCertPath, s.cfg.SSLKeyPath)
-		// err := s.server.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
-			log.Fatalf("There's an error with the server: %s", err.Error())
-		}
-	}()
+	if s.cfg.Scheme == "https" {
+		go func() {
+			err := s.server.ListenAndServeTLS(s.cfg.SSLCertPath, s.cfg.SSLKeyPath)
+			if err != nil && err != http.ErrServerClosed {
+				log.Fatalf("There's an error with the server: %s", err.Error())
+			}
+		}()
+	} else {
+		go func() {
+			err := s.server.ListenAndServe()
+			if err != nil && err != http.ErrServerClosed {
+				log.Fatalf("There's an error with the server: %s", err.Error())
+			}
+		}()
+	}
 	log.Println("Server started on", s.server.Addr)
 	s.wait()
 }
