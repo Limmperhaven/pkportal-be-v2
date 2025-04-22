@@ -3,6 +3,8 @@ package domain
 import (
 	"context"
 	"database/sql"
+	"time"
+
 	"github.com/Limmperhaven/pkportal-be-v2/internal/body"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/config"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
@@ -15,7 +17,6 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"golang.org/x/crypto/bcrypt"
-	"time"
 )
 
 func (u *Usecase) SignUp(ctx context.Context, req *tpportal.SignUpRequest) error {
@@ -39,7 +40,7 @@ func (u *Usecase) SignUp(ctx context.Context, req *tpportal.SignUpRequest) error
 	user := tpportal.User{
 		Email:                      req.Email,
 		HashPassword:               hashPassword,
-		Fio:                        req.Fio,
+		Fio:                        u.normalizeFio(req.Fio),
 		DateOfBirth:                dob,
 		Gender:                     tpportal.UserGender(req.Gender),
 		PhoneNumber:                req.PhoneNumber,

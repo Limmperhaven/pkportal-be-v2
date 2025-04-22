@@ -36,7 +36,7 @@ func (u *Usecase) CreateUser(ctx context.Context, req *tpportal.CreateUserReques
 	user := tpportal.User{
 		Email:               req.Email,
 		HashPassword:        hashPassword,
-		Fio:                 req.Fio,
+		Fio:                 u.normalizeFio(req.Fio),
 		DateOfBirth:         dob,
 		Gender:              tpportal.UserGender(req.Gender),
 		PhoneNumber:         req.PhoneNumber,
@@ -349,7 +349,7 @@ func (u *Usecase) UpdateUser(ctx context.Context, req tpportal.UpdateUserRequest
 		user.DateOfBirth = dob
 	}
 
-	user.Fio = req.Fio
+	user.Fio = u.normalizeFio(req.Fio)
 	user.Gender = tpportal.UserGender(req.Gender)
 	user.PhoneNumber = req.PhoneNumber
 	user.ParentPhoneNumber = req.ParentPhoneNumber

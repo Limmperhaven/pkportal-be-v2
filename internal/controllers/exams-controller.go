@@ -1,12 +1,13 @@
 package controllers
 
 import (
+	"net/http"
+
 	"github.com/Limmperhaven/pkportal-be-v2/internal/controllers/response"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/mapper"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/restmodels"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 func (s *ControllerStorage) SetGrades(c *gin.Context) {
@@ -18,10 +19,8 @@ func (s *ControllerStorage) SetGrades(c *gin.Context) {
 	}
 	err = s.uc.SetGrades(c, *mapper.NewSetGradesRequestFromRest(&req))
 	if err != nil {
-		if err != nil {
-			response.NewErrorResponse(c, err)
-			return
-		}
+		response.NewErrorResponse(c, err)
+		return
 	}
 	c.Status(http.StatusOK)
 }

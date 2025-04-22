@@ -4,15 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/Limmperhaven/pkportal-be-v2/internal/body"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/errs"
 	"github.com/Limmperhaven/pkportal-be-v2/internal/models/tpportal"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
-	"strconv"
-	"strings"
-	"time"
 )
 
 func (u *Usecase) extractUserFromCtx(ctx context.Context) (tpportal.User, error) {
@@ -97,4 +98,8 @@ func (u *Usecase) int64SliceToInterfaceSlice(in []int64) []interface{} {
 		out[i] = v
 	}
 	return out
+}
+
+func (u *Usecase) normalizeFio(fio string) string {
+	return strings.Join(strings.Fields(fio), " ")
 }
