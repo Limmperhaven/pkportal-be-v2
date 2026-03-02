@@ -356,7 +356,7 @@ func (u *Usecase) SignUpUserToTestDate(ctx context.Context, userId, tdId int64) 
 	tdDate, tdTime := u.formatDateTime(td.DateTime)
 
 	var emailBody string
-	if user.EducationYear == 9 {
+	if user.EducationYear == 9 || user.EducationYear == 8 {
 		emailBody = body.SignUpForTestDateMessage9Year
 	} else {
 		emailBody = body.SignUpForTestDateMessage10Year

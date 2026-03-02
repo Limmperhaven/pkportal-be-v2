@@ -322,7 +322,10 @@ func (u *Usecase) GetUser(ctx context.Context, userId int64) (tpportal.GetUserRe
 }
 
 func (u *Usecase) UpdateUser(ctx context.Context, req tpportal.UpdateUserRequest, userId int64) error {
-	user, err := tpportal.Users(tpportal.UserWhere.ID.EQ(userId)).One(ctx, u.st.DBSX())
+	user, err := tpportal.Users(
+		tpportal.UserWhere.ID.EQ(userId),
+		qm.Load(tpportal.UserRels.UserStatuses),
+	).One(ctx, u.st.DBSX())
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return errs.NewNotFound(fmt.Errorf("пользователь с id: %d не найден", userId))
@@ -354,11 +357,42 @@ func (u *Usecase) UpdateUser(ctx context.Context, req tpportal.UpdateUserRequest
 	user.PhoneNumber = req.PhoneNumber
 	user.ParentPhoneNumber = req.ParentPhoneNumber
 	user.CurrentSchool = null.StringFrom(req.CurrentSchool)
-	user.EducationYear = int16(req.EducationYear)
 
-	_, err = user.Update(ctx, u.st.DBSX(), boil.Infer())
+	newEducationYear := int16(req.EducationYear)
+	educationYearChanged := user.EducationYear != newEducationYear
+	user.EducationYear = newEducationYear
+
+	err = u.st.QueryTx(ctx, func(tx *sqlx.Tx) error {
+		_, err = user.Update(ctx, tx, boil.Infer())
+		if err != nil {
+			return errs.NewInternal(err)
+		}
+
+		if educationYearChanged {
+			hasStatus := false
+			for _, us := range user.R.UserStatuses {
+				if us.EducationYear == newEducationYear {
+					hasStatus = true
+					break
+				}
+			}
+			if !hasStatus {
+				newStatus := tpportal.UserStatus{
+					UserID:        user.ID,
+					StatusID:      body.Registered.Int64(),
+					EducationYear: newEducationYear,
+				}
+				err = newStatus.Insert(ctx, tx, boil.Infer())
+				if err != nil {
+					return errs.NewInternal(err)
+				}
+			}
+		}
+
+		return nil
+	})
 	if err != nil {
-		return errs.NewInternal(err)
+		return err
 	}
 
 	return nil
