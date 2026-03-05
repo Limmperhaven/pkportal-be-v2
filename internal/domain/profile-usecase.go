@@ -14,9 +14,8 @@ import (
 	"time"
 )
 
-func (u *Usecase) ListProfiles(ctx context.Context, educationYear int16) ([]tpportal.ListProfilesResponseItem, error) {
+func (u *Usecase) ListProfiles(ctx context.Context) ([]tpportal.ListProfilesResponseItem, error) {
 	profiles, err := tpportal.Profiles(
-		tpportal.ProfileWhere.EducationYear.EQ(u.profileEducationYear(educationYear)),
 		qm.Load(
 			qm.Rels(
 				tpportal.ProfileRels.Subjects,
@@ -27,8 +26,8 @@ func (u *Usecase) ListProfiles(ctx context.Context, educationYear int16) ([]tppo
 		return nil, errs.NewInternal(err)
 	}
 
-	res := make([]tpportal.ListProfilesResponseItem, len(profiles))
-	for i, profile := range profiles {
+	res := make([]tpportal.ListProfilesResponseItem, 0, len(profiles))
+	for _, profile := range profiles {
 		subjects := make([]tpportal.IdName, len(profile.R.Subjects))
 		for j, subj := range profile.R.Subjects {
 			subjects[j] = tpportal.IdName{
@@ -36,11 +35,19 @@ func (u *Usecase) ListProfiles(ctx context.Context, educationYear int16) ([]tppo
 				Name: subj.Name,
 			}
 		}
-		res[i] = tpportal.ListProfilesResponseItem{
+		res = append(res, tpportal.ListProfilesResponseItem{
 			Id:            profile.ID,
 			Name:          profile.Name,
 			EducationYear: int64(profile.EducationYear),
 			Subjects:      subjects,
+		})
+		if profile.EducationYear == 9 {
+			res = append(res, tpportal.ListProfilesResponseItem{
+				Id:            profile.ID,
+				Name:          profile.Name,
+				EducationYear: 8,
+				Subjects:      subjects,
+			})
 		}
 	}
 	return res, nil

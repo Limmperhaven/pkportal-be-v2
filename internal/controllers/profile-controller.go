@@ -27,13 +27,7 @@ func (s *ControllerStorage) UpdateProfile(c *gin.Context) {
 }
 
 func (s *ControllerStorage) ListProfiles(c *gin.Context) {
-	userIdCtx, ok := c.Get(body.UserCtx)
-	if !ok {
-		response.NewErrorResponse(c, errs.NewInternal(errors.New("в контексте отсутствует userId")))
-		return
-	}
-	user := userIdCtx.(tpportal.User)
-	profiles, err := s.uc.ListProfiles(c, user.EducationYear)
+	profiles, err := s.uc.ListProfiles(c)
 	if err != nil {
 		response.NewErrorResponse(c, err)
 		return
