@@ -14,8 +14,9 @@ import (
 	"time"
 )
 
-func (u *Usecase) ListProfiles(ctx context.Context) ([]tpportal.ListProfilesResponseItem, error) {
+func (u *Usecase) ListProfiles(ctx context.Context, educationYear int16) ([]tpportal.ListProfilesResponseItem, error) {
 	profiles, err := tpportal.Profiles(
+		tpportal.ProfileWhere.EducationYear.EQ(u.profileEducationYear(educationYear)),
 		qm.Load(
 			qm.Rels(
 				tpportal.ProfileRels.Subjects,
