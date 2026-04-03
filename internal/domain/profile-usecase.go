@@ -93,7 +93,7 @@ func (u *Usecase) SetProfilesToUser(ctx context.Context, req tpportal.SetProfile
 			return errs.NewInternal(err)
 		}
 
-		if firstProfile.EducationYear != u.profileEducationYear(user.EducationYear) {
+		if firstProfile.EducationYear != u.mappedEducationYear(user.EducationYear) {
 			return errs.NewBadRequest(errors.New("профиль 1 не соответствует выбранному году обучения"))
 		}
 	}
@@ -107,7 +107,7 @@ func (u *Usecase) SetProfilesToUser(ctx context.Context, req tpportal.SetProfile
 			return errs.NewInternal(err)
 		}
 
-		if secondProfile.EducationYear != u.profileEducationYear(user.EducationYear) {
+		if secondProfile.EducationYear != u.mappedEducationYear(user.EducationYear) {
 			return errs.NewBadRequest(errors.New("профиль 2 не соответствует выбранному году обучения"))
 		}
 	}
