@@ -104,9 +104,9 @@ func (u *Usecase) normalizeFio(fio string) string {
 	return strings.Join(strings.Fields(fio), " ")
 }
 
-// mappedEducationYear maps the user's education year for filtering.
-// Year 8 is treated as year 9 (shared profiles and test dates).
-func (u *Usecase) mappedEducationYear(userYear int16) int16 {
+// profileEducationYear maps the user's education year to the profile education year.
+// Year 8 shares profiles with year 9.
+func (u *Usecase) profileEducationYear(userYear int16) int16 {
 	if userYear == 8 {
 		return 9
 	}

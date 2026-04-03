@@ -109,7 +109,7 @@ func (u *Usecase) ListTestDates(ctx context.Context, filter tpportal.ListTestDat
 		queryMods = append(queryMods, tpportal.TestDateWhere.PubStatus.EQ(tpportal.TestDatePubStatusShown))
 		queryMods = append(queryMods, tpportal.TestDateWhere.DateTime.GT(time.Now().Add(3*24*time.Hour)))
 		utd, err := tpportal.UserTestDates(
-			tpportal.UserTestDateWhere.EducationYear.EQ(u.mappedEducationYear(user.EducationYear)),
+			tpportal.UserTestDateWhere.EducationYear.EQ(user.EducationYear),
 			tpportal.UserTestDateWhere.UserID.EQ(user.ID),
 		).One(ctx, u.st.DBSX())
 		if err != nil && err != sql.ErrNoRows {
@@ -132,7 +132,7 @@ func (u *Usecase) ListTestDates(ctx context.Context, filter tpportal.ListTestDat
 
 	res := make([]tpportal.TestDateResponse, 0, len(tds))
 	for _, td := range tds {
-		if availableOnly && (td.MaxPersons == len(td.R.UserTestDates) || td.EducationYear != u.mappedEducationYear(user.EducationYear)) {
+		if availableOnly && (td.MaxPersons == len(td.R.UserTestDates) || td.EducationYear != user.EducationYear) {
 			continue
 		}
 		date, time := u.formatDateTime(td.DateTime)
@@ -282,7 +282,7 @@ func (u *Usecase) SignUpUserToTestDate(ctx context.Context, userId, tdId int64) 
 		return errs.NewInternal(err)
 	}
 
-	if td.EducationYear != u.mappedEducationYear(user.EducationYear) {
+	if td.EducationYear != user.EducationYear {
 		return errs.NewBadRequest(fmt.Errorf("данная дата тестирования доступна только для %d класса", td.EducationYear))
 	}
 
@@ -298,7 +298,7 @@ func (u *Usecase) SignUpUserToTestDate(ctx context.Context, userId, tdId int64) 
 	utd := tpportal.UserTestDate{
 		UserID:        user.ID,
 		TestDateID:    td.ID,
-		EducationYear: u.mappedEducationYear(user.EducationYear),
+		EducationYear: user.EducationYear,
 		IsAttended:    false,
 	}
 
